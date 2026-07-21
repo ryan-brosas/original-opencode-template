@@ -1,0 +1,17 @@
+# Local agent runtime state
+.pi/
+
+# Environment files may contain credentials
+.env
+.env.*
+!.env.example
+.opencode/.env
+.opencode/.env.*
+!.opencode/.env.example
+
+# Dependencies, build output, and local noise
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
