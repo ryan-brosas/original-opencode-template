@@ -50,7 +50,7 @@
       "extensions": [".js", ".jsx", ".ts", ".tsx", ".json", ".jsonc", ".cjs", ".mjs", ".mts"]
     }
   },
-  "instructions": [],
+  "instructions": ["AGENTS.md"],
   "keybinds": {
     "leader": "ctrl+x",
     "session_child_first": "<leader>down",

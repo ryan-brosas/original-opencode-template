@@ -71,3 +71,27 @@ Verification:
 - `invalid: true` flag is pre-existing (build also has it, untouched by Plan 4) — not caused by Plan 4 edits.
 
 **Task 3 PENDING:** needs opencode restart for `opencode debug agent` to reflect disk changes. `bash .opencode/tool/verify.sh` → exit 0.
+
+## 2026-07-22 — Plan 4 Task 3 complete (restart + verify + commit)
+
+- User restarted opencode. Ran `opencode debug agent` for all 6 agents.
+- Discovered `permission` is a flattened array of `{permission, pattern, action}` tuples (last match wins), not a nested object.
+- Confirmed `task: false` (no recursive delegation) for all 4 specialists — the critical hard gate.
+- **Found write-bypass gap:** explore/review had `tools.write: false` in frontmatter but the resolved `write` tool key was ABSENT (defaults to enabled). No `write` permission rule existed, so explore/review could bypass `edit: deny` by using the `write` tool to create/overwrite files. general was safe (write=false at tool level); scout was safe (write:deny permission with artifact allow).
+- **Fixed gap:** added explicit `write: { "*": deny }` to explore + review permission blocks. Verified via `opencode debug agent`: both now show `write * => deny`.
+
+Final effective permission table (last-match-wins, verified at runtime):
+```
+AGENT    | edit | write | apply_patch | task | rm -rf | git push | rg | ls | git diff
+general  | deny | n/a   | deny       | deny | deny   | deny     | allow | allow | allow
+explore  | deny | deny  | deny       | deny | deny   | deny     | allow | allow | allow
+review   | deny | deny  | deny       | deny | deny   | deny     | allow | allow | allow
+scout    | deny | deny  | deny       | deny | deny   | deny     | allow | allow | allow
+build    | allow | allow | n/a       | n/a  | deny   | ask      | allow | allow | allow
+plan     | ask  | ask   | n/a       | n/a  | deny   | deny     | allow | allow | allow
+```
+(general write=n/a: tool disabled at registry level, write=false confirmed; scout write/edit deny with .opencode/artifacts/**/*.md allow for research notes)
+
+- Committed Plan 3 + Plan 4 as `0a1a4f9` (12 files, +231/-94). Pushed to GitHub `0b429a7..0a1a4f9 main -> main`.
+
+**Plan 4 COMPLETE. Roadmap (Plans 1-4) COMPLETE.**

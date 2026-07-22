@@ -69,6 +69,13 @@ Updated: 2026-07-08
 - **Rationale:** Evidence-backed; uses existing OpenCode primitives (instructions, permissions, hooks, compaction, session export) — no new infra. Personal-use scope; no public onboarding.
 - **Consequences:** Executable spec at `.opencode/artifacts/template-harness-v2/plan.md`. `structural-check.sh` exits 1 on failure (docs were stale). `plugin/sdk/`, TypeScript devDep, vector memory, swarm sync all deferred.
 
+### [2026-07-22] Deferred optional items resolved — instructions wiring, template export, plugin/sdk audit
+
+- **Context:** Roadmap complete (Plans 1-4). Four deferred optional items addressed.
+- **Decision:** (1) `opencode.json` `instructions: ["AGENTS.md"]` — root `AGENTS.md` (project map) is NOT auto-injected by opencode (only `.opencode/AGENTS.md` loads natively as the project AGENTS.md); wiring injects the map exactly once, no duplication (project-root-relative path, different file from `.opencode/AGENTS.md`). (2) `tool/sync-template.sh` — the deferred export mechanism: regenerates `template/.opencode` from `.opencode`'s shippable subset (594 files), removes stale deletions, regenerates `.template-manifest.json` with fresh SHA-256. Working-state excluded: node_modules, .fallow, .fallowrc.json, .gitignore, package*.json, roadmap.md, state.md, tech-stack.md, artifacts/.active, artifacts/template-harness-v2. (3) README.md dead refs (`/start` `/status` `/resume`) + stale `npm run` Verification Baseline + command count/descriptions fixed; root AGENTS.md command-list + template/ note + stale ship.md gotcha fixed. (4) `plugin/sdk/` audit: the 3 plugins (diagnostics, skill-mcp, guard) have disjoint helper modules + types (`diagnostics/types.ts` vs `skill-mcp/types.ts`); NO shared contract exists → `plugin/sdk/` remains deferred (not speculative).
+- **Rationale:** Root AGENTS.md is valuable orientation fresh sessions lacked (verified: my own system prompt carried `.opencode/AGENTS.md` but NOT root AGENTS.md). Export mechanism fixes recurring template drift without hand-editing (respects "don't hand-edit template/" rule). plugin/sdk/ stays deferred per Kernel #2 (no speculative abstractions).
+- **Consequences:** Requires opencode restart for `instructions[]` to take effect (verify after restart: root AGENTS.md content should appear in fresh sessions; `.opencode/AGENTS.md` continues to load natively). Reconcile template/ anytime with `bash .opencode/tool/sync-template.sh`. `verify.sh` green; `template/` diff clean (only working-state active-only).
+
 ---
 
 ## Patterns

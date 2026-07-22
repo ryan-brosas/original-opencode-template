@@ -5,7 +5,7 @@ updated: 2026-07-22
 
 # Tech Stack
 
-This file is intended for AI context injection via `opencode.json` → `instructions[]` (currently **empty**, so not auto-injected yet — read on demand). Detected by `/init --deep` on 2026-07-22.
+This file is the detailed tech-stack map (read on demand). The concise project map at root `AGENTS.md` is auto-injected via `opencode.json` → `instructions[]`; `.opencode/AGENTS.md` (behavioral kernel) loads natively as the project `AGENTS.md`. Detected by `/init --deep` on 2026-07-22.
 
 ## Framework & Language
 

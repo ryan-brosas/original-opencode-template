@@ -7,10 +7,10 @@ updated: 2026-07-22
 
 ## Current Position
 
-**Active Plan:** Plan 4 — Least-privilege agent permissions (Plans 1-3 complete)
-**Status:** Ready to start Plan 4
+**Active Plan:** Complete — Template Harness v2 (Plans 1-4 shipped)
+**Status:** All 4 plans + 4 deferred optional items shipped, committed, pushed to GitHub
 **Started:** 2026-07-22
-**Phase:** Template Harness v2
+**Phase:** Template Harness v2 — DONE; deferred follow-ups resolved
 
 ## Recent Completed Work
 
@@ -26,6 +26,8 @@ updated: 2026-07-22
 | 2026-07-22 | Restart + continuity check | opencode restarted; prompt-leverage/session-summary no longer loaded (verified: prompts arrive unwrapped); state.md updated as continuity mechanism |
 | 2026-07-22 | Plan 3 shipped | Rewrote `fix.md` (verify.sh loop, no guessed npm), aligned `build.md` (sole writer, finalized permissions), marked batch-implement + dev-lifecycle DORMANT; verify.sh green |
 | 2026-07-22 | Plan 4 Tasks 1-2 on disk | Narrowed `plan.md` bash to deny-first; added `task:false`+`apply_patch:false`+deny-first bash to general/explore/review/scout; general→read-only; `task:false` confirmed via debug; needs restart for full verification |
+| 2026-07-22 | Plan 4 complete + committed | After restart, verified all 4 specialists read-only via `opencode debug agent` (last-match-wins); found+fixed write-bypass gap (explore/review write:deny); committed `0a1a4f9`, pushed to GitHub |
+| 2026-07-22 | Deferred items resolved | (1) wired `instructions:["AGENTS.md"]` (root map was NOT auto-injected); (2) `tool/sync-template.sh` export mechanism + reconciled `template/.opencode` (594 files, manifest regenerated); (3) README dead refs + stale `npm run` Verification Baseline fixed; (4) `plugin/sdk/` audit: no shared contract → deferred; verify.sh green, diff clean |
 
 ## Active Decisions
 
@@ -50,7 +52,7 @@ updated: 2026-07-22
 - `prompt-leverage.ts` removed (Plan 2) — confirmed gone after restart: prompts arrive unwrapped (no Objective/Context/Work Style framework).
 - `session-summary.ts` + helpers removed (Plan 2) — confirmed gone after restart: no `<session_summary>` block in context. Continuity now relies on file-based memory (this file + MEMORY.md + progress.md), not every-turn injection.
 - No typecheck/test suite: `typescript` not a dep; `npx tsc` is a stub. Bun compile smoke (Plan 1) is not semantic typecheck.
-- `opencode.json instructions[]` empty → root AGENTS.md not auto-injected.
+- `opencode.json instructions: ["AGENTS.md"]` wired — root `AGENTS.md` (project map) now auto-injected alongside `.opencode/AGENTS.md` (kernel, native). Verified: my system prompt carried only `.opencode/AGENTS.md` before wiring. Requires restart to take effect.
 
 ### Product
 
@@ -65,17 +67,21 @@ updated: 2026-07-22
 4. [x] Plan 3 Task 1: rewrite `fix.md` + align `build.md` (finalize build permissions) — done
 5. [x] Plan 3 Task 2: mark swarm routing dormant — done
 6. [x] Plan 3 Task 3: smoke-test `/ship` without `.active` — done (ship.md:25 disowns requirement)
-7. [x] Plan 4 Task 1: narrow `plan.md` bash to deny-first read-only — done on disk
-8. [x] Plan 4 Task 2: deny-first shell + task:false + apply_patch:false for general/explore/review/scout — done on disk
-9. [ ] Plan 4 Task 3: restart opencode, then inspect resolved permissions for every agent (NEEDS RESTART)
+7. [x] Plan 4 Task 1: narrow `plan.md` bash to deny-first read-only — done
+8. [x] Plan 4 Task 2: deny-first shell + task:false + apply_patch:false for general/explore/review/scout — done
+9. [x] Plan 4 Task 3: restart + verify resolved permissions — done (all read-only confirmed; write gap found+fixed; committed 0a1a4f9)
+10. [x] Deferred item 1: README dead refs + stale Verification Baseline — done
+11. [x] Deferred item 2: wire `instructions:["AGENTS.md"]` + fix tech-stack.md claim — done (needs restart to verify injection)
+12. [x] Deferred item 3: `tool/sync-template.sh` export mechanism + reconcile `template/.opencode` — done (594 files, manifest regenerated, diff clean)
+13. [x] Deferred item 4: `plugin/sdk/` audit — no shared contract found, remains deferred (not speculative)
 
 ## Session Handoff
 
-**Last Session:** 2026-07-22 (Plans 1-2 shipped, pushed to GitHub, restarted)
-**Next Session Priority:** Plan 3 — align `/fix` + build, disable swarm routing
-**Known Issues:** README.md has dead command refs (/start /status /resume) + stale `npm run typecheck` baseline — noticed, separate cleanup
+**Last Session:** 2026-07-22 (Plans 1-4 + 4 deferred optional items shipped, pushed to GitHub)
+**Next Session Priority:** Roadmap + deferred follow-ups complete. Restart opencode to activate `instructions:["AGENTS.md"]`, then verify root AGENTS.md appears in a fresh session.
+**Known Issues:** (none — deferred items resolved)
 **Context Links:** `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/template-harness-v2/{spec,plan,progress,research}.md`, `.opencode/artifacts/MEMORY.md`
-**Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main, `0b429a7`)
+**Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main)
 
 ---
 

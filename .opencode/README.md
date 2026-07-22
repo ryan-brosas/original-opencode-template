@@ -11,7 +11,7 @@ This directory contains project-specific OpenCode configuration: agents, command
 ├── dcp.jsonc                # Dynamic context pruning settings
 ├── QUALITY.md               # Quality grades per domain (graded by /gc)
 ├── agent/                   # Agent definitions (7)
-├── command/                 # Slash commands (8 — includes /gc)
+├── command/                 # Slash commands (9 — includes /gc, /init)
 ├── artifacts/               # Session artifacts, memory, plans
 ├── skill/                   # Skill library used by agents/commands
 ├── tool/                    # Custom tools (structural-check.sh, etc.)
@@ -31,9 +31,8 @@ Add the keys you actually need for enabled services.
 
 ## Agent and Command Workflow
 
-- Spec-first flow: `/create` -> `/start <id>` -> `/ship <id>`
-- Use `/plan <id>` optionally for deeper implementation planning
-- Use `/status` and `/resume` for continuity
+- Spec-first flow: `/create` -> `/ship` (or `/ship` with a direct request)
+- Use `/plan` optionally for deeper implementation planning
 
 ## Skills
 
@@ -104,10 +103,11 @@ New workflows: add a `.md` file to `.opencode/workflows/` following the same str
 
 | Command | Description | Agent |
 |---|---|---|
+| `/init` | Initialize AGENTS.md, planning context, tech stack | build |
 | `/create` | Create spec, workspace, and tasks | build |
 | `/plan` | Detailed implementation plan | plan |
-| `/ship` | Execute tasks, verify, review, close | build |
-| `/verify` | Check implementation completeness | review |
+| `/ship` | Implement a change or plan, verify it, report evidence | build |
+| `/verify` | Run the deterministic offline verifier and report results | review |
 | `/research` | External research | scout |
 | `/fix` | Fix a bug | build |
 | `/audit` | Codebase pattern audit | review |
@@ -143,9 +143,14 @@ Run the structural check directly:
 ## Verification Baseline
 
 ```bash
-npm run typecheck
-npm run lint
-npm run test
+# Deterministic offline verifier (exits 1 on failure)
+bash .opencode/tool/verify.sh
+
+# Structural invariants only (exits 1 on failure)
+bash .opencode/tool/structural-check.sh
+
+# Formatter (on demand)
+npx oxfmt <file>
 ```
 
-For docs/config governance, run the validation scripts defined in `package.json`.
+No `npm run` scripts exist (`package.json` has none). `tsc` is unavailable (`typescript` is not a dependency).
