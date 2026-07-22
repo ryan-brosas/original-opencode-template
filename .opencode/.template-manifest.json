@@ -1,9 +1,9 @@
 {
   "version": "0.24.0",
-  "createdAt": "2026-07-22T09:24:10.000Z",
+  "createdAt": "2026-07-22T09:39:27.000Z",
   "files": {
     ".env.example": "eed235067006ee00d43985ceb0fa54e9f1e788e7a300ff4cd537e9bd22e3d2bf",
-    ".gitignore": "219b87635f468085ddc1e60d03293c4e2330c27be49cf00489a51a104ef56d0a",
+    ".gitignore": "96b13e49add58dbc8b05ffbf5489b79795e297c59fcc69b0b50de569e64861ec",
     ".version": "566e2307cdd34d632f1c522f89ac9f525ccf2e4486af587deabdc9c484cacafe",
     "AGENTS.md": "3f157182fdefa1d9e57717e0599c11112efc4685ab92fc22e1e28b2ee0d77310",
     "QUALITY.md": "a81bf9773a3b4b5d4662a0f9fa28693ec88b9f6bb6dece56d7709cf9b468f462",
@@ -623,7 +623,7 @@
     "tool/skill-mine/usage.test.ts": "9d6d8018be96a5323073a7a598334d0074364d5819a616365076aa04cdbf8439",
     "tool/skill-mine/usage.ts": "a46f96ea32cb06cef8e926e69572480870ebb38d96ef51954fe96154ec9eecdc",
     "tool/structural-check.sh": "eec33c528a6b443a6977463f2284e9f4449e138021da24690d56c3edd11bdfc6",
-    "tool/sync-template.sh": "54fa71a1e52c64e53fe9065ef1814188a84ddee5e88e116247977e4cd4f666cc",
+    "tool/sync-template.sh": "69d7c4373e07297cdc779802b07316901071e328c65dd378e9cf8251e05049ee",
     "tool/verify-typecheck-test.sh": "85feb03d5c6e59e7b8ef52d970edc0105f09f77984b2c038cc43d71c9b12f319",
     "tool/verify.sh": "480b160889893c8e981109a4dde003739e64ba6e76100c8cfe6b229b5c66c3dc",
     "tsconfig.json": "4dd5d1ed75325d5e6fee83938d5a2b53015204ef232e5e2c825efdb26b6daa57",

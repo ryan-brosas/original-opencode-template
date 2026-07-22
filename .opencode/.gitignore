@@ -2,3 +2,4 @@ node_modules
 bun.lock
 .fallow/
 .skill-mine/
+.sandbox-state/

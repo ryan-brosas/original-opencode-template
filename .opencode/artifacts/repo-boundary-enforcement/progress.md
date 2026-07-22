@@ -86,8 +86,26 @@ Risks:
   - The toast is **best-effort** (headless/`opencode run`/no-TUI-ready → toast fails, caught). stderr is the reliable channel; toast is the TUI-visible channel. No PTY TUI reproduction was run (review noted this; the mock-client test proves the toast fires, not that it remains visible on screen — acceptable for V1).
   - opencode swallowing factory throws means the plugin CANNOT enforce fail-closed from inside the process; the launcher's preflight + bwrap's inherent fail-closed are the guarantee.
 
+## Shipped: Plan 02 Task 2 (packaging gate) — `.sandbox-state/` never ships
+
+Changed: `.opencode/.gitignore:5` (+`.sandbox-state/`), `.opencode/tool/sync-template.sh:55` (+`.sandbox-state` to EXCLUDES), `.opencode/.template-manifest.json` (regenerated: `.gitignore` + `tool/sync-template.sh` hashes + `createdAt`)
+Commands: `grep -q sandbox-state .opencode/.gitignore` (PASS), `bash .opencode/tool/sync-template.sh` (exit 0), `! grep -q sandbox-state .opencode/.template-manifest.json` (PASS), `bash .opencode/tool/verify.sh` (exit 0)
+Result: PASS — all gates green
+
+### Honest RED→GREEN (canary-proven)
+
+The packaging property is security-critical (`.sandbox-state/` holds sandbox-local XDG — opencode auth, git identity, sessions, cache; must never ship to consumers). Proven load-bearing with a throwaway canary, not asserted:
+
+- **RED:** created `.opencode/.sandbox-state/auth.json` (gitignored first for safety), ran `sync-template.sh` WITHOUT the sync exclusion → canary LEAKED to `template/.opencode/.sandbox-state/auth.json` AND the manifest (`grep -c sandbox-state` = 1). Proves the sync exclusion is load-bearing (`.gitignore` alone is insufficient — `sync-template.sh` uses its own EXCLUDES list, not gitignore).
+- **GREEN:** added `.sandbox-state` to sync EXCLUDES, re-ran `sync-template.sh` → canary excluded (manifest 0 matches, file removed from template/). The 6 other sandbox/repo-boundary files (launcher, launcher-test, conf.example, plugin, plugin-test, invariant-test) still ship — the exclusion is precise (`sandbox-state` ≠ `opencode-sandbox`).
+- Canary cleaned up via `mv` to /tmp (`rm` is denied to the agent; gitignore confirmed it was never committable).
+
+### Scope note
+
+Shipped the packaging GATE (the safety property). Deferred the docs batch (Task 2 also lists "docs explain trusted install / Linux-only / network+secret limits / normal-checkout / sandbox-local provider+git" across README.md/tech-stack.md/AGENTS.md/verify.md/plugin/README.md) to a follow-up ship — it's prose for the Task 3 manual-activation user instructions, lower risk than the packaging gate, and bundling 5 doc files would noise this diff. The conf.example already documents setuid + sandbox-local XDG.
+
 ## Open work
 
-- **Plan 02 Task 1 (remainder)** — wire the launcher + real-bwrap integration into `verify.sh` (missing bwrap = hard FAIL).
-- **Plan 02 Task 2** — package without exporting state (`.gitignore` + `sync-template.sh` exclusion + manifest) + sandbox-local opencode/auth/git-identity activation design.
-- **Plan 02 Task 3** — manual activation + evidence closeout (USER checkpoint: install wrapper outside workspace, restart, `opencode-sandbox-test.sh --active`, then record + remove `.active`).
+- **Plan 02 Task 1 (remainder)** — **ARCHITECTURE DECISION PENDING (user):** the plan says wire the launcher + real-bwrap into `verify.sh` with "missing bwrap = hard FAIL not SKIP". But `verify.sh` has an established SKIP convention (Check 4 typecheck SKIPs when the compiler is absent — `verify.sh:14,68-69,82-86`; header line 5: "SKIPs do not fail") and ships to ALL consumers. Hard-failing on missing bwrap would break `verify.sh` for every macOS/WSL/non-setuid-bwrap consumer, blocking ALL their verification (typecheck, structural, config) — not just the boundary check. Options: (a) SKIP-when-bwrap-unavailable (matches verify.sh's existing portability contract; catches regressions WHERE bwrap is present); (b) hard-FAIL (matches the plan's literal wording; breaks non-Linux-setuid consumers); (c) separate `verify-sandbox.sh` invoked only when the sandbox is active (Task 3). Needs user decision before wiring.
+- **Plan 02 Task 2 (docs)** — deferred docs batch (trusted install / Linux-only / network+secret limits / normal-checkout / sandbox-local provider+git) — prose, for Task 3 user instructions.
+- **Plan 02 Task 3** — manual activation + evidence closeout (USER checkpoint: install wrapper outside workspace, restart, `opencode-sandbox-test.sh --active`, then record + remove `.active`). Hard manual checkpoint — cannot complete autonomously.

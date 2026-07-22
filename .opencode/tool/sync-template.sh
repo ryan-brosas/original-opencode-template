@@ -52,6 +52,7 @@ EXCLUDES=(
   ".template-manifest.json"
   "project-skills"
   ".skill-mine"
+  ".sandbox-state"
 )
 
 is_excluded() {
