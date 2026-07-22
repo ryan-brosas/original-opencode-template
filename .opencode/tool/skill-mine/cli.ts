@@ -11,6 +11,7 @@
 //   bun .opencode/tool/skill-mine/cli.ts recover <name> # recover/rollback a crashed retire or restore
 //
 //   bun .opencode/tool/skill-mine/cli.ts budget            # print catalog budget check (exit 1 if over)
+//   bun .opencode/tool/skill-mine/cli.ts doctor            # print health-check report (exit 1 if unhealthy)
 //   bun .opencode/tool/skill-mine/cli.ts validate <name>    # run admission checks on a quarantined candidate
 //   bun .opencode/tool/skill-mine/cli.ts promote <name>    # promote a candidate to its active root (evidence JSON via stdin for template scope)
 //   bun .opencode/tool/skill-mine/cli.ts rollback <name>   # move a promoted skill back to quarantine (after outer release failure)
@@ -28,6 +29,7 @@ import { recordApproval } from "./evaluate.js";
 import { retire, restore, recover, promote, rollbackPromote } from "./lifecycle.js";
 import { checkBudget, scanMinedSkills } from "./budget.js";
 import { appendUsage, usageReport, recommendRetirement } from "./usage.js";
+import { doctorCheck } from "./doctor.js";
 import type { ProvisionalInput } from "./types.js";
 import type { ApprovalInput } from "./evaluate.js";
 
@@ -197,6 +199,11 @@ async function main(): Promise<number> {
       }
       console.error(`unknown usage action: ${action}`);
       return 2;
+    }
+    case "doctor": {
+      const report = doctorCheck(cfg);
+      console.log(JSON.stringify(report, null, 2));
+      return report.overall.ok ? 0 : 1;
     }
     default: {
       console.error(`unknown subcommand: ${subcommand}`);
