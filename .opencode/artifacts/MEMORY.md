@@ -90,6 +90,13 @@ Updated: 2026-07-08
 - **Rationale:** Semantic typecheck catches real errors Bun compile smoke misses (unresolved types, invalid property access, arg-arity) — it caught 3 latent bugs on first run. Exact pins match the repo's reproducibility style. Nested binary keeps the gate offline + deterministic (bare/npx can be absent or unpinned). Consumer SKIP avoids shipping a dependency the template deliberately excludes. Isolated-fixture regression test proves the SKIP/PASS/FAIL branches without touching the live compiler.
 - **Consequences:** `verify.sh` now has 5 checks (was 4); docs updated (AGENTS.md, verify.md, ship.md, README.md, tech-stack.md). `npx tsc` is still a stub at repo root, but `.opencode/node_modules/.bin/tsc` is the real pinned compiler — `npm ci --prefix .opencode` installs it. Strictness migration (strict:false → true) is an explicit non-goal. `plugin/sdk/` still deferred.
 
+### [2026-07-22] Template ships typecheck deps — consumer-clean reversed
+
+- **Context:** User wanted the generated template to run the full 5/5 verifier (typecheck PASS, not SKIP), matching the dev repo. The consumer-clean design above deliberately excluded `package.json`/`package-lock.json` so consumers carried no deps; the template verifier SKIPs Check 4/5.
+- **Decision:** Reversed consumer-clean. `sync-template.sh` now ships `package.json` + `package-lock.json` (removed them from EXCLUDES). Consumers run `npm ci --prefix .opencode` to install the pinned compiler (`typescript@7.0.2` + ambient types) and `verify.sh` runs 5/5. The SKIP code path stays as a fallback: a fresh checkout before `npm ci` SKIPs with the `npm ci --prefix .opencode` install hint (not the dev-repo-only note).
+- **Rationale:** A template that silently skips its own gate on consumers gives a false sense of verification. Shipping the manifest makes the typecheck real everywhere; the install hint guides consumers who haven't run `npm ci` yet. Reproducibility preserved by the exact-pinned lockfile.
+- **Consequences:** Template file count 594 → 596 (+package.json, +package-lock.json). `node_modules`/`bun.lock`/`.fallow` still excluded (consumers install locally). `.opencode/.gitignore` still excluded — consumers rely on their root `.gitignore` for `node_modules` (a standard `node_modules` rule matches `.opencode/node_modules`). The spec's consumer-clean success criterion (sc6) is superseded; spec status line notes this. Live docs (AGENTS.md, tech-stack.md, verify.md) updated.
+
 ---
 
 ## Patterns

@@ -1,6 +1,6 @@
 {
   "version": "0.24.0",
-  "createdAt": "2026-07-22T01:53:33.000Z",
+  "createdAt": "2026-07-22T02:01:26.000Z",
   "files": {
     ".env.example": "eed235067006ee00d43985ceb0fa54e9f1e788e7a300ff4cd537e9bd22e3d2bf",
     ".version": "566e2307cdd34d632f1c522f89ac9f525ccf2e4486af587deabdc9c484cacafe",
@@ -40,6 +40,8 @@
     "dcp-prompts/overrides/compress-range.md": "6bc1344757d821811bafb22ceaa3f738a573282573d5607cc932d99b59783a22",
     "dcp.jsonc": "fe05e5b11c073b0ad6a686e84016a54abe844b2b3e677f70278787826c969af3",
     "opencode.json": "a791566c1e4a0bec8b8d505673944b116404901fd9f60a729cbcb924148937a1",
+    "package-lock.json": "b13fbc31dc00e83e460b5dc664ce1fb528cfbe67400223c912e6c41a3fb59185",
+    "package.json": "4a5fbf4a7c6036da5a9c8cd76749a75614bc7774b51386c71ab9c1990032b290",
     "plugin/README.md": "b2f6d3fe0f1db2d90dc112e77c75c3fae7372cda3d3e78cc265ce49ddd549b94",
     "plugin/diagnostics.ts": "ee197fe533ac2eadd9aea00224b6a2de58ed3d5fa19cfc627fa3684795f0349a",
     "plugin/diagnostics/aislop.ts": "b86e3d95a860c8da1754e370c04044541558d26220bae4714acd76352fdf5401",
@@ -586,7 +588,7 @@
     "tool/context7.ts": "aacb4f5ee4c148e1143f116e3492d2a14f2bd7ee2260b91227df7423671494a6",
     "tool/grepsearch.ts": "a112955935ff6c96c09c426d891c08efce1bd50ea9d0d2237c45b6b05f6c53ad",
     "tool/structural-check.sh": "91b111fe6139af2c608a9ef63fd0074485874963975b835440d264a5d6e18852",
-    "tool/sync-template.sh": "9e00ed4179ac436efe145ec617bab49472a669f326642db3eebf15205fadb967",
+    "tool/sync-template.sh": "e2a13e896cabc2c8fbf9816c0b9ee1810a7feae59771f1b73c15ddae28221497",
     "tool/verify-typecheck-test.sh": "85feb03d5c6e59e7b8ef52d970edc0105f09f77984b2c038cc43d71c9b12f319",
     "tool/verify.sh": "480b160889893c8e981109a4dde003739e64ba6e76100c8cfe6b229b5c66c3dc",
     "tsconfig.json": "4dd5d1ed75325d5e6fee83938d5a2b53015204ef232e5e2c825efdb26b6daa57",

@@ -63,7 +63,7 @@ Local plugins live in `.opencode/plugin/*.ts` (default-export a `Plugin`). Exter
 - **Edit protocol / delegation / search:** see `.opencode/AGENTS.md` (behavioral kernel).
 
 ## Gotchas
-- `typescript` is a devDependency (7.0.2); use the nested `.opencode/node_modules/.bin/tsc`, never bare/`npx tsc` (which may resolve to an unpinned or missing global). Consumer templates ship without the manifest and `verify.sh` SKIPs the typecheck.
+- `typescript` is a devDependency (7.0.2); use the nested `.opencode/node_modules/.bin/tsc`, never bare/`npx tsc` (which may resolve to an unpinned or missing global). Consumer templates ship the manifest — run `npm ci --prefix .opencode` to install the compiler and enable the typecheck (without it, `verify.sh` SKIPs Check 4/5 with an install hint).
 - `structural-check.sh` exits 1 on failure; the PASS-after-FAIL size bug is fixed (size section now guards its pass). `verify.sh` aggregates all checks.
 - `plugin/sdk/` is referenced by the architecture but **does not exist yet** — create it when extracting shared types.
 - `command/ship.md` was 502 lines (over the 500 limit) — rewritten to 142 lines in the verifier-centered rework.

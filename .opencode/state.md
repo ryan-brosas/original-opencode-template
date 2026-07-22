@@ -32,6 +32,7 @@ updated: 2026-07-22
 | 2026-07-22 | Auto-ship landed | After restart, build agent loaded allow; committed `df05bc5` (4 files), pushed `f63f03d..df05bc5 main -> main`. Auto-ship is LIVE. Gotcha learned: commit message body must not contain the literal `--no-verify` or it trips the `*--no-verify*` deny rule |
 | 2026-07-22 | `/plan semantic-typecheck` | Plan written (448 lines, 4 plans/8 tasks); spec/prd reconciled with review-audit corrections (Check 4/5, nested gitignore trim, plugin/tsconfig, isolated regression test, generic export, finalization); pins `typescript@7.0.2`+`@types/bun@1.3.14`+`@types/node@24.12.2`; awaiting `/ship` |
 | 2026-07-22 | semantic-typecheck shipped | 5-check `verify.sh` (typecheck = Check 4/5, nested pinned `tsc`, consumer SKIP); `typescript@7.0.2`+`@types/bun@1.3.14`+`@types/node@24.12.2` tracked; 3 baseline errors fixed (`guard.ts:20` narrowing, removed `bun.d.ts` shim); `verify-typecheck-test.sh` isolated regression test; `sync-template.sh` generic artifact allowlist; docs updated; verify.sh green |
+| 2026-07-22 | Template ships typecheck deps | Consumer-clean reversed: `sync-template.sh` ships `package.json`/`package-lock.json`; consumers run `npm ci --prefix .opencode` for 5/5; template verify = 5/5 PASS (was 4+SKIP); SKIP path kept as fresh-checkout fallback |
 
 ## Active Decisions
 
@@ -43,6 +44,7 @@ updated: 2026-07-22
 | 2026-07-22 | `structural-check.sh` exits 1 on failure (not 0) | Verified: docs were stale; real bug is misleading PASS-after-FAIL message |
 | 2026-07-22 | Auto ship on completion: commit + push after verify | User wants per-artifact auto commit+push; verify.sh is the gate; subagents stay read-only; force-push + hook-bypass denied |
 | 2026-07-22 | Semantic typecheck gate = verify.sh Check 4/5 | Exact-pinned devDeps tracked; nested pinned `tsc` (offline); consumer SKIP; isolated regression test; strictness migration non-goal |
+| 2026-07-22 | Template ships typecheck deps (consumer-clean reversed) | Template should run 5/5 like dev; SKIP path kept as fresh-checkout fallback; consumers carry pinned lockfile |
 
 ## Blockers
 
@@ -57,7 +59,7 @@ updated: 2026-07-22
 - `structural-check.sh` **exits 1 on failure** — docs claiming "exits 0" are stale and wrong. Real bug: unconditional `pass "All files within size limits"` at line 92 printed after a recorded size violation.
 - `prompt-leverage.ts` removed (Plan 2) — confirmed gone after restart: prompts arrive unwrapped (no Objective/Context/Work Style framework).
 - `session-summary.ts` + helpers removed (Plan 2) — confirmed gone after restart: no `<session_summary>` block in context. Continuity now relies on file-based memory (this file + MEMORY.md + progress.md), not every-turn injection.
-- Semantic typecheck is now live: `verify.sh` Check 4/5 runs `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` (typescript@7.0.2 pinned). `npx tsc` at repo root is still a stub, but the nested pinned compiler is real — install with `npm ci --prefix .opencode`. Consumers SKIP Check 4/5 (no package manifest shipped).
+- Semantic typecheck is now live: `verify.sh` Check 4/5 runs `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` (typescript@7.0.2 pinned). `npx tsc` at repo root is still a stub, but the nested pinned compiler is real — install with `npm ci --prefix .opencode`. Templates now ship the manifest too (consumer-clean reversed); consumers run `npm ci --prefix .opencode` for 5/5, or get a SKIP install hint on fresh checkout.
 - `opencode.json instructions: ["AGENTS.md"]` wired — root `AGENTS.md` (project map) now auto-injected alongside `.opencode/AGENTS.md` (kernel, native). Verified: my system prompt carried only `.opencode/AGENTS.md` before wiring. Requires restart to take effect.
 
 ### Product

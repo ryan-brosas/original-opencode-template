@@ -30,7 +30,7 @@ bash .opencode/tool/verify.sh
 | 1 | Config validation (`opencode debug config --pure`) | Invalid `opencode.json` — opencode hard-fails on bad config |
 | 2 | Structural invariants (`structural-check.sh`) | Plugin isolation, file size limits, TODO hygiene, kebab-case |
 | 3 | Bun compile smoke | Syntax + import-resolution errors in `plugin/*.ts` + `tool/*.ts` |
-| 4 | TypeScript semantic typecheck | Semantic type errors via the pinned local `tsc`; SKIPs when the compiler is absent (consumer templates ship without it) |
+| 4 | TypeScript semantic typecheck | Semantic type errors via the pinned local `tsc`; SKIPs with an install hint when the compiler is absent (run `npm ci --prefix .opencode` to install) |
 | 5 | `git diff --check` | Whitespace errors / conflict markers |
 
 Exit 0 = no check failed (SKIPs do not count as failures). Exit 1 = one or more

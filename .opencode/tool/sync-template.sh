@@ -3,9 +3,10 @@
 #
 # Copies every shippable file from .opencode/ to template/.opencode/, removes template
 # files that no longer ship, and regenerates .template-manifest.json with fresh SHA-256
-# hashes. Working-state files (node_modules, .fallow, .fallowrc.json, package*.json,
-# bun.lock, .gitignore, roadmap.md, state.md, tech-stack.md, and the manifest itself) are
-# excluded.
+# hashes. Working-state files (node_modules, .fallow, .fallowrc.json, bun.lock,
+# .gitignore, roadmap.md, state.md, tech-stack.md, and the manifest itself) are
+# excluded. package.json + package-lock.json ship so consumers can run
+# `npm ci --prefix .opencode` to enable the semantic typecheck (verify.sh Check 4/5).
 #
 # Artifacts use a generic allowlist: under artifacts/, only MEMORY.md, todo.md, and
 # example/** ship. Every other artifact path (active feature dirs, specs, plans,
@@ -38,8 +39,6 @@ EXCLUDES=(
   ".fallow"
   ".fallowrc.json"
   ".gitignore"
-  "package.json"
-  "package-lock.json"
   "bun.lock"
   "roadmap.md"
   "state.md"

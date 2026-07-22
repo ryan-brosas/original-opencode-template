@@ -2,7 +2,7 @@
 
 **Slug:** semantic-typecheck
 **Created:** 2026-07-22
-**Status:** Complete
+**Status:** Complete — consumer-clean clause superseded (see MEMORY 2026-07-22 "Template ships typecheck deps"): `package.json`/`package-lock.json` now ship to consumers so the template also runs 5/5 after `npm ci --prefix .opencode`. The consumer-SKIP code path remains as a fallback for fresh checkouts before install.
 
 ## Bead Metadata
 

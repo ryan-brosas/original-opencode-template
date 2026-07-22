@@ -38,7 +38,7 @@ This file is the detailed tech-stack map (read on demand). The concise project m
 - Plugin isolation: plugins import SDK only — never each other. Shared types → `plugin/sdk/` (not yet on disk).
 - File size limits: plugins ≤300 lines, SDK ≤150, commands ≤500, workflows ≤150.
 - Filename convention: kebab-case only.
-- `typescript` is a devDependency (7.0.2, exact); semantic typecheck runs via `verify.sh` using the pinned local `.opencode/node_modules/.bin/tsc`. Consumer templates ship without the manifest and the verifier SKIPs the typecheck.
+- `typescript` is a devDependency (7.0.2, exact); semantic typecheck runs via `verify.sh` using the pinned local `.opencode/node_modules/.bin/tsc`. Consumer templates ship the manifest — run `npm ci --prefix .opencode` to enable the typecheck (without the compiler installed, `verify.sh` SKIPs Check 4/5 with an install hint).
 - Never edit `template/` (untracked reference copy) or generated `dist/`.
 
 ## Active Integrations
