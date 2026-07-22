@@ -1,0 +1,181 @@
+{
+  "slug": "semantic-typecheck",
+  "title": "Semantic Typecheck Gate",
+  "created": "2026-07-22",
+  "status": "ready",
+  "goal": "Add a real semantic TypeScript typecheck gate to verify.sh, offline and deterministic, skip-if-absent so consumers stay clean, and fix the baseline type errors it surfaces.",
+  "depends_on": [],
+  "parallel": false,
+  "success_criteria": [
+    {
+      "id": "sc1",
+      "check": "Standalone tsc exits 0 in dev repo",
+      "verify": "cd /home/ryan/repo/opencode && .opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json; echo \"exit=$?\""
+    },
+    {
+      "id": "sc2",
+      "check": "verify.sh exits 0 with 5 checks, typecheck PASS as Check 4/5 (tsc present)",
+      "verify": "bash .opencode/tool/verify.sh; echo \"exit=$?\""
+    },
+    {
+      "id": "sc3",
+      "check": "With tsc absent, verify.sh exits 0 and typecheck prints SKIP (not PASS, not FAIL)",
+      "verify": "mv .opencode/node_modules .opencode/node_modules.bak && bash .opencode/tool/verify.sh; echo \"exit=$?\"; mv .opencode/node_modules.bak .opencode/node_modules"
+    },
+    {
+      "id": "sc4",
+      "check": "package.json + package-lock.json tracked by git",
+      "verify": "git ls-files .opencode/package.json .opencode/package-lock.json"
+    },
+    {
+      "id": "sc5",
+      "check": "Shipped template stays clean (no package.json for consumers)",
+      "verify": "bash .opencode/tool/sync-template.sh && test ! -f template/.opencode/package.json && echo \"consumer clean\""
+    },
+    {
+      "id": "sc6",
+      "check": "No stale typecheck/4-check claims in shipped docs (incl. ship.md)",
+      "verify": "rg -n 'is NOT a semantic typecheck|typescript is not a dep|Check [0-9]/4|4/4' .opencode/tool/verify.sh .opencode/command/verify.md .opencode/command/ship.md AGENTS.md .opencode/tech-stack.md"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "title": "Install typecheck toolchain + discover baseline",
+      "category": "deps",
+      "end_state": "Dev repo has typescript@7.0.2 + @types/node + the chosen Bun ambient types installed as exact-pinned devDeps, and a standalone tsc run reveals the complete baseline error list.",
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": ["t3"],
+      "files": [".opencode/package.json", ".opencode/package-lock.json", ".opencode/tsconfig.json"],
+      "verification": [
+        ".opencode/node_modules/.bin/tsc --version prints 7.0.2",
+        ".opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json runs; capture the error list for Task 2",
+        "node -e \"console.log(require('./.opencode/package.json').devDependencies)\" lists typescript + @types/node + Bun types package, all exact-pinned"
+      ]
+    },
+    {
+      "id": "t2",
+      "title": "Fix baseline type errors",
+      "category": "fix",
+      "end_state": "All type errors surfaced by Task 1 are fixed in-source (real narrowing + correct types from @types/bun); the local bun.d.ts shim is removed if @types/bun covers the spawn/kill API, kept+documented only if insufficient; no @ts-nocheck, no any suppression, no tsconfig loosening.",
+      "depends_on": ["t1"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".opencode/plugin/guard.ts",
+        ".opencode/plugin/diagnostics/lang-runners.ts",
+        ".opencode/plugin/diagnostics/bun.d.ts"
+      ],
+      "verification": [
+        ".opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json exits 0",
+        "rg -n '@ts-nocheck|as any' .opencode/plugin .opencode/tool returns no new occurrences",
+        "If bun.d.ts removed: rg -n 'Bun\\.(spawn|which)' .opencode/plugin call sites still typecheck (covered by @types/bun)"
+      ]
+    },
+    {
+      "id": "t3",
+      "title": "Track and trim nested .gitignore",
+      "category": "infra",
+      "end_state": ".opencode/.gitignore is trimmed (keep node_modules/bun.lock/.fallow) and tracked by git; .opencode/package.json + package-lock.json tracked; root .gitignore untouched; reproducibility holds across fresh clones.",
+      "depends_on": [],
+      "parallel": true,
+      "conflicts_with": ["t1"],
+      "files": [".opencode/.gitignore"],
+      "verification": [
+        "git ls-files .opencode/package.json .opencode/package-lock.json .opencode/.gitignore lists all three",
+        "git check-ignore .opencode/.fallow .opencode/bun.lock .opencode/node_modules shows all still ignored",
+        "git check-ignore .opencode/package.json .opencode/package-lock.json .opencode/.gitignore returns nothing (un-ignored)",
+        "rg -n '.fallow' .gitignore returns no matches (root untouched)"
+      ]
+    },
+    {
+      "id": "t4",
+      "title": "Wire semantic typecheck into verify.sh (Check 4/5, skip-if-absent) + regression test",
+      "category": "gate",
+      "end_state": "verify.sh runs typecheck as Check 4/5 (after Bun compile, before git diff) invoking the nested .opencode/node_modules/.bin/tsc directly; PASS when green, FAIL when red, SKIP (INFO, not counted) when absent; N/4 labels renumbered to N/5; header drops the 'NOT a semantic typecheck' disclaimer; isolated regression test covers PASS/FAIL/two-SKIP branches.",
+      "depends_on": ["t2", "t3"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/tool/verify.sh", ".opencode/tool/verify-typecheck-test.sh"],
+      "verification": [
+        "bash .opencode/tool/verify.sh exits 0; output shows Check 4/5 with PASS (tsc present)",
+        "bash .opencode/tool/verify-typecheck-test.sh exits 0 (isolated PASS/FAIL/SKIP regression passes)",
+        "mv .opencode/node_modules .opencode/node_modules.bak && bash .opencode/tool/verify.sh; echo exit; mv back → exit 0 and typecheck line shows SKIP",
+        "rg -n 'Check [0-9]/4|4/4' .opencode/tool/verify.sh returns no matches (renumbered)"
+      ]
+    },
+    {
+      "id": "t5",
+      "title": "Update stale docs + durable memory (incl. ship.md)",
+      "category": "docs",
+      "end_state": "verify.md, ship.md, README.md, root AGENTS.md, tech-stack.md reflect the 5-check verifier with Check 4/5 typecheck and skip-if-absent; MEMORY.md supersedes the 'typescript not a dep' decisions; roadmap.md moves semantic-typecheck out of Deferred; state.md records the completed work + context note.",
+      "depends_on": ["t4"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".opencode/command/verify.md",
+        ".opencode/command/ship.md",
+        ".opencode/README.md",
+        "AGENTS.md",
+        ".opencode/tech-stack.md",
+        ".opencode/artifacts/MEMORY.md",
+        ".opencode/roadmap.md",
+        ".opencode/state.md"
+      ],
+      "verification": [
+        "rg -n 'is NOT a semantic typecheck|typescript is not a dep|Check [0-9]/4|4/4' .opencode/tool/verify.sh .opencode/command/verify.md .opencode/command/ship.md AGENTS.md .opencode/tech-stack.md returns no matches",
+        "rg -n 'semantic typecheck|4/5|skip-if-absent' .opencode/command/verify.md .opencode/command/ship.md returns matches (new docs present)"
+      ]
+    },
+    {
+      "id": "t6",
+      "title": "Generic export policy + artifact finalization",
+      "category": "sync",
+      "end_state": "template/.opencode regenerated; consumers do NOT receive package.json/lockfile or working planning artifacts; sync-template.sh uses a generic artifact allowlist (ship only artifacts/MEMORY.md, artifacts/todo.md, artifacts/example/**); final verify.sh exits 0; spec/prd/plan marked Complete and .active removed.",
+      "depends_on": ["t5"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".opencode/tool/sync-template.sh",
+        ".opencode/.template-manifest.json",
+        ".opencode/artifacts/semantic-typecheck/spec.md",
+        ".opencode/artifacts/semantic-typecheck/prd.json",
+        ".opencode/artifacts/semantic-typecheck/plan.md",
+        ".opencode/artifacts/.active"
+      ],
+      "verification": [
+        "bash .opencode/tool/sync-template.sh succeeds",
+        "test ! -f template/.opencode/package.json && echo consumer clean",
+        "test ! -e template/.opencode/artifacts/semantic-typecheck && echo no working artifacts leaked",
+        "test -f template/.opencode/artifacts/MEMORY.md && test -f template/.opencode/artifacts/todo.md && echo allowlisted artifacts present",
+        "npm_config_offline=true bash template/.opencode/tool/verify.sh → exit 0 and typecheck line shows SKIP",
+        "test ! -e .opencode/artifacts/.active && echo artifact closed",
+        "bash .opencode/tool/verify.sh exits 0"
+      ]
+    }
+  ],
+  "open_questions": [
+    {
+      "question": "@types/bun vs bun-types package? tsconfig currently says bun-types (older) — which is current and does its types entry become [\"node\",\"bun\"]?",
+      "owner": "build",
+      "resolve_in": "t1",
+      "status": "Resolved: @types/bun@1.3.14 (depends on bun-types@1.3.14); types entry becomes [\"node\",\"bun\"]"
+    },
+    {
+      "question": "Exact baseline error count + whether bun.d.ts shim is removable",
+      "owner": "build",
+      "resolve_in": "t1"
+    },
+    {
+      "question": "Delete .opencode/.gitignore entirely vs trim lines 2,3,5 only (keep node_modules/bun.lock/.fallow local)",
+      "owner": "build",
+      "resolve_in": "t3",
+      "status": "Resolved: trim (do not touch root .gitignore)"
+    }
+  ],
+  "stop_conditions": [
+    "Task 1 reveals >10 baseline errors or an API refactor (not just narrowing) → stop, surface to user (may indicate wrong types-package choice)",
+    "tsc under TS 7.0 surfaces a strictness issue that seems wrong → document and decide rather than suppress"
+  ]
+}

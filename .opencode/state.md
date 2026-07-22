@@ -7,10 +7,10 @@ updated: 2026-07-22
 
 ## Current Position
 
-**Active Plan:** Complete — Template Harness v2 (Plans 1-4 shipped)
-**Status:** All 4 plans + 4 deferred optional items shipped, committed, pushed to GitHub
+**Active Plan:** semantic-typecheck — plan ready (awaiting `/ship`)
+**Status:** `/plan` complete; spec/prd reconciled; plan.md written; no implementation yet
 **Started:** 2026-07-22
-**Phase:** Template Harness v2 — DONE; deferred follow-ups resolved
+**Phase:** semantic-typecheck — Plan written, ready to ship
 
 ## Recent Completed Work
 
@@ -30,6 +30,7 @@ updated: 2026-07-22
 | 2026-07-22 | Deferred items resolved | (1) wired `instructions:["AGENTS.md"]` (root map was NOT auto-injected); (2) `tool/sync-template.sh` export mechanism + reconciled `template/.opencode` (594 files, manifest regenerated); (3) README dead refs + stale `npm run` Verification Baseline fixed; (4) `plugin/sdk/` audit: no shared contract → deferred; verify.sh green, diff clean |
 | 2026-07-22 | Auto-ship wired | `build.md` commits+pushes after verify.sh exits 0 on a completed work unit; `git commit`/`push` flipped ask→allow, force-push + hook-bypass denied; `/ship` Close rewritten to reference the standing rule |
 | 2026-07-22 | Auto-ship landed | After restart, build agent loaded allow; committed `df05bc5` (4 files), pushed `f63f03d..df05bc5 main -> main`. Auto-ship is LIVE. Gotcha learned: commit message body must not contain the literal `--no-verify` or it trips the `*--no-verify*` deny rule |
+| 2026-07-22 | `/plan semantic-typecheck` | Plan written (448 lines, 4 plans/8 tasks); spec/prd reconciled with review-audit corrections (Check 4/5, nested gitignore trim, plugin/tsconfig, isolated regression test, generic export, finalization); pins `typescript@7.0.2`+`@types/bun@1.3.14`+`@types/node@24.12.2`; awaiting `/ship` |
 
 ## Active Decisions
 
@@ -77,13 +78,14 @@ updated: 2026-07-22
 11. [x] Deferred item 2: wire `instructions:["AGENTS.md"]` + fix tech-stack.md claim — done (needs restart to verify injection)
 12. [x] Deferred item 3: `tool/sync-template.sh` export mechanism + reconcile `template/.opencode` — done (594 files, manifest regenerated, diff clean)
 13. [x] Deferred item 4: `plugin/sdk/` audit — no shared contract found, remains deferred (not speculative)
+14. [x] `/plan semantic-typecheck` — plan written + spec/prd reconciled; awaiting `/ship`
 
 ## Session Handoff
 
-**Last Session:** 2026-07-22 (auto-ship landed: `df05bc5` committed + pushed; auto-ship is LIVE)
-**Next Session Priority:** Auto-ship is live — every completed + verify.sh-green work unit commits + pushes with no prompt. Verify `instructions:["AGENTS.md"]` injection in a fresh session (root AGENTS.md project map should appear alongside `.opencode/AGENTS.md` kernel). Reconcile `template/` with `bash .opencode/tool/sync-template.sh` if desired.
-**Known Issues:** (none — deferred items resolved; auto-ship live)
-**Context Links:** `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/template-harness-v2/{spec,plan,progress,research}.md`, `.opencode/artifacts/MEMORY.md`
+**Last Session:** 2026-07-22 (`/plan semantic-typecheck` complete: plan.md written, spec/prd reconciled with review-audit corrections, progress.md + state.md updated)
+**Next Session Priority:** `/ship semantic-typecheck` — execute the 4-plan TDD sequence. First write-enabled action: apply the Planning Corrections (spec/prd already reconciled), then Plan 1 Task 1 (install `typescript@7.0.2`+`@types/bun@1.3.14`+`@types/node@24.12.2`, trim nested `.gitignore`, capture RED). Treat the whole artifact as one work unit — no interim auto-ship commit until the final verification battery passes. Stop if tsc reveals >10 baseline errors or an API refactor.
+**Known Issues:** (none — plan ready; spec/prd reconciled)
+**Context Links:** `.opencode/artifacts/semantic-typecheck/{spec,plan,progress,prd.json}`, `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/MEMORY.md`
 **Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main)
 
 ---
