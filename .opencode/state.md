@@ -7,10 +7,10 @@ updated: 2026-07-22
 
 ## Current Position
 
-**Active Plan:** skill-mine — Plan 1 shipped; Plans 2–7 pending
-**Status:** Plan 1 (Control Plane + Validation Contracts) complete + shipped; config/schema/scope-roots green
+**Active Plan:** skill-mine — Plans 1–2 shipped; Plans 3–7 pending
+**Status:** Plan 2 (Completion Evidence + Private Capture) complete + shipped; receipts + capture + privacy gate green (review-fixed)
 **Started:** 2026-07-22
-**Phase:** skill-mine — Plan 1 done, Plan 2 next
+**Phase:** skill-mine — Plans 1–2 done, Plan 3 next
 
 ## Recent Completed Work
 
@@ -36,6 +36,7 @@ updated: 2026-07-22
 | 2026-07-22 | `/create skill-mine` | Full PRD (358 lines) + prd.json (194 lines): self-extending governed skill library; 6-stage lifecycle, ignored quarantine, phased delivery, 8 success criteria; deep research (3 explore + 1 scout + 1 review) |
 | 2026-07-22 | `/plan skill-mine` | Plan written (7 serial child plans, 16 TDD tasks, 15 artifacts); spec/prd reconciled with 12 Required PRD Corrections (review audit P1 contradictions); Discovery Level 3; awaiting `/ship` |
 | 2026-07-22 | skill-mine Plan 1 shipped | Control plane + validation contracts: tracked `.opencode/skill-mine.json`, `tool/skill-mine/{config,schema}.ts` (loadConfig/bootstrapRuntime + validateSkill generic+mined-admission + privacy scan), `skills.paths` registered, `.skill-mine` gitignored, sync excludes project-skills + runtime; 22 bun tests pass, typecheck + verify.sh 5/5 green |
+| 2026-07-22 | skill-mine Plan 2 shipped | Completion evidence + private capture: `types.ts` + `receipts.ts` (prepareReceipt/finalizeReceipt, git binding, idempotency, no-new-commit guard) + `capture.ts` (commit-type check, tree re-validate, privacy scan over summary/risks/paths) + `cli.ts` (prepare/finalize/capture) + schema `scanFreeText` export (ASIA + long-hex entropy); ship flow wired (build.md/ship.md). Read-only review found 7 P1+4 P2; fixed 6 P1+2 P2 inline (traversal, nested-check, idempotency, tree-OID, no-new-commit, ASIA, path-escape, perms); rejected ls-remote (offline mandate); deferred atomic-write + consumer-ignore to Plan 7. 44 tests pass, verify.sh 5/5 green |
 
 ## Active Decisions
 
@@ -95,8 +96,8 @@ updated: 2026-07-22
 
 ## Session Handoff
 
-**Last Session:** 2026-07-22 (`/ship skill-mine` Plan 1 shipped: tracked config + lazy runtime, frontmatter/provenance/privacy schema, scope roots + export boundary; 22 tests pass, typecheck + verify.sh 5/5 green)
-**Next Session Priority:** `/ship skill-mine` Plan 2 — Completion Evidence and Private Capture. Tasks: 2.1 provisional/finalized receipts (temp git repos + bare remote; finalize only after push; allowlisted fields only); 2.2 receipt-only sanitized capture (`capture <sha>` accepts only finalized matching receipt; normalize paths; ship flow prepares→commits→pushes→finalizes). Treat Plan 2 as one work unit; Ship-on-Completion after verify.sh green. Stop if a synthetic credential passes capture or a receipt can be forged from an unpushed tree.
+**Last Session:** 2026-07-22 (`/ship skill-mine` Plan 2 shipped: receipts + capture + privacy gate; review-fixed 6 P1 + 2 P2; 44 tests pass, verify.sh 5/5 green)
+**Next Session Priority:** `/ship skill-mine` Plan 3 — Candidate Admission and Behavioral Approval. Tasks: 3.1 quarantine + isolated loader validation (candidates outside skill roots; copy into a temp project's skill root + fresh `opencode debug skill --pure` with external sources disabled; never the live root); 3.2 independent hash-bound behavioral approval (`/skill-mine distill` + `/skill-mine evaluate`; baseline w/o candidate + 2 treatment runs w/ candidate; independent review judge; baseline must fail, treatments pass ≥4/5; user confirms promotion eligibility; candidate changes invalidate approval). Treat Plan 3 as one work unit; Ship-on-Completion after verify.sh green. Stop if the isolated loader cannot prove the exact candidate loaded, or behavioral approval is not independent + content-hash-bound.
 **Known Issues:** (none — Plan 1 green and shipped)
 **Context Links:** `.opencode/artifacts/skill-mine/{spec,plan,progress,prd.json}`, `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/MEMORY.md`
 **Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main)

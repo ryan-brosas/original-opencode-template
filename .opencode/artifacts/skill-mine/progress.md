@@ -92,3 +92,76 @@ Plan 1 (3 tasks) executed as one work unit, TDD RED→GREEN each task. All gates
   skill/ + skill-mine.json + tool/skill-mine present
 
 **Status:** Plan 1 complete + shipped. Plans 2–7 pending.
+
+## 2026-07-22 — Plan 2 shipped (Completion Evidence + Private Capture)
+
+Two tasks, TDD (RED→GREEN per task). Plus a read-only `review` pass (high-risk:
+forged receipt = false success) whose P1 findings were fixed inline.
+
+### Task 2.1 — Provisional/finalized receipts
+- `tool/skill-mine/types.ts` — `CheckResult`, `ProvisionalReceipt`, `FinalizedReceipt`,
+  `ProvisionalInput`, `MinedTrace`.
+- `tool/skill-mine/receipts.ts` — `prepareReceipt` (validate input, sanitize
+  checks, `git write-tree` staged tree, `parentSha`, branch, write provisional at
+  0600) + `finalizeReceipt` (commit-type via `cat-file`, tree/branch/remote
+  binding, idempotent only for the same workUnitId, no-new-commit guard).
+- `tool/skill-mine/receipts.test.ts` — 15 tests (temp git repos + bare remote):
+  failed-check/empty-paths/empty-summary reject; nothing-committed → no new
+  commit; tree mismatch; wrong branch; stale remote; success; idempotent;
+  workUnitId traversal; changedPath escape; nested-check stripping; finalize
+  conflict.
+
+### Task 2.2 — Receipt-only sanitized capture
+- `tool/skill-mine/capture.ts` — `capture(sha)`: read finalized, assert
+  `receipt.commitSha === sha`, `cat-file -t` is `commit`, tree matches, privacy
+  scan over summary+risks+changedPaths, write sanitized trace (checks
+  reconstructed as `{id,exitCode}`) at 0600.
+- `tool/skill-mine/schema.ts` — exported `scanFreeText` (reused by capture);
+  added `ASIA` AWS STS pattern; entropy gate now `(distinct>=20 OR length>=64)
+  AND entropy>=3.5` (catches long hex/base64 without tripping 40-char sha1).
+- `tool/skill-mine/capture.test.ts` — 8 tests: no receipt; provisional-only;
+  tree mismatch (forged); commit-not-found; secret in summary (AKIA); ASIA in
+  summary; tree-OID forgery (not a commit); success (sanitized trace, no
+  prompt/diff keys).
+- `tool/skill-mine/cli.ts` — `prepare` (stdin JSON) / `finalize <id>` /
+  `capture <sha>`; `SKILL_MINE_CONFIG` env override; `import.meta.main` guard.
+- `agent/build.md` + `command/ship.md` — Completion Receipt step (prepare after
+  stage → commit/push → finalize); optional (ships either way).
+
+### Review pass + fixes (high-risk: security/data-integrity)
+Read-only `review` subagent flagged 7 P1 + 4 P2. Fixed inline (with RED tests):
+- P1 workUnitId path traversal → `WORK_UNIT_ID` pattern (no `.`/`/`).
+- P1 nested check fields bypass privacy → `sanitizeChecks` keeps only
+  `{id,exitCode}`; summary/risks typed.
+- P1 finalize idempotency bypass → idempotent branch requires workUnitId match.
+- P1 capture accepts a tree-OID → `git cat-file -t` must be `commit`.
+- P1 "no new commit" → `parentSha`; finalize requires `commitSha !== parentSha`.
+- P1 privacy gaps (ASIA, long hex) → added patterns/tests.
+- P2 changedPath escape → normalize against cwd, reject `..`/absolute-outside;
+  changedPaths included in the capture privacy scan.
+- P2 permissions → explicit `chmodSync` 0700/0600 on existing paths.
+
+Rejected (contradicts the plan's offline mandate):
+- P1 `git ls-remote` for remote validation — would require network; `origin/
+  <branch>` tracking ref is the correct offline signal that a push succeeded
+  for a personal-use tool. Stale-ref/local-tag forgery is out of threat model.
+
+Documented limitations / deferred:
+- P2 atomic temp+rename write — a partial file fails JSON.parse (visible
+  failure, not a silent bypass); rare for personal-use.
+- P2 consumer `.skill-mine/` ignore propagation — dev repo is safe
+  (`.opencode/.gitignore` has the rule); consumers lack it because sync excludes
+  `.gitignore`. Deferred to Plan 7 (Docs/Export) which owns consumer privacy
+  docs + export hygiene.
+
+### Verification (Plan 2)
+- `bun test tool/skill-mine/` → 44 pass, 0 fail (101 expect calls)
+- `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` → exit 0
+- `bash .opencode/tool/structural-check.sh` → exit 0
+- `npm_config_offline=true bash .opencode/tool/verify.sh` → exit 0 (5/5 PASS)
+- `bash .opencode/tool/sync-template.sh` → 607 files; `tool/skill-mine/` ships,
+  `.skill-mine/` + `project-skills/` absent, `skill-mine.json` ships
+- CLI smoke (temp repo + bare remote): `prepare` → `finalize` (printed sha) →
+  `capture` (printed trace path, file on disk) — end-to-end via the real binary
+
+**Status:** Plan 2 complete + shipped. Plans 3–7 pending.

@@ -121,6 +121,8 @@ If any goal fails Level 2 or 3, fix and re-verify before claiming done.
 
 Verify passed and evidence recorded. Commit and push the work per your standing **Ship on Completion** rule: stage the changed paths only (never `git add .`), commit with a conventional message, push to `origin`. Then report done.
 
+To make the work unit mineable, wrap the ship transaction in a skill-mine completion receipt: prepare a provisional receipt after staging, commit + push, then finalize (see `agent/build.md` → Completion Receipt). Optional — the work ships either way.
+
 ## Output
 
 1. **Summary**: one line — what changed and why

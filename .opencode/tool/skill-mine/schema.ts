@@ -197,6 +197,16 @@ function scanPrivacy(
   failures: ValidationFailure[],
 ): void {
   const freeText = [description, metaMap.evidence_summary ?? "", body].join("\n");
+  failures.push(...scanFreeText(freeText));
+}
+
+/**
+ * Run the privacy scan over a single free-text blob. Returns any failures.
+ * Exported so capture can reuse the exact same patterns over receipt evidence
+ * (summary + risks) — the last gate before a trace is written.
+ */
+export function scanFreeText(freeText: string): ValidationFailure[] {
+  const failures: ValidationFailure[] = [];
 
   if (/-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(freeText)) {
     failures.push({
@@ -208,6 +218,12 @@ function scanPrivacy(
     failures.push({
       code: "secret-detected",
       message: "AWS access key id detected in free text",
+    });
+  }
+  if (/ASIA[0-9A-Z]{16}/.test(freeText)) {
+    failures.push({
+      code: "secret-detected",
+      message: "AWS STS temporary access key id detected in free text",
     });
   }
   if (/gh[pousr]_[A-Za-z0-9]{36,}/.test(freeText)) {
@@ -231,7 +247,9 @@ function scanPrivacy(
 
   const tokens = freeText.match(/[A-Za-z0-9+/_=-]{32,}/g) ?? [];
   for (const token of tokens) {
-    if (distinctChars(token) >= 20 && shannonEntropy(token) >= 3.5) {
+    // Catch high-entropy secrets across alphabets: either a wide character set
+    // (>=20 distinct) OR a long token (>=64 chars) that could be hex/base64.
+    if ((distinctChars(token) >= 20 || token.length >= 64) && shannonEntropy(token) >= 3.5) {
       failures.push({
         code: "high-entropy",
         message: "high-entropy token detected in free text (likely a secret)",
@@ -239,6 +257,7 @@ function scanPrivacy(
       break;
     }
   }
+  return failures;
 }
 
 function distinctChars(s: string): number {
