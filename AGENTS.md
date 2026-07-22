@@ -5,7 +5,7 @@ This repo IS the OpenCode template/configuration. Real code lives in `.opencode/
 ## Stack
 - **Language:** TypeScript — ES2022, ESNext, bundler resolution, `strict: false`, Bun types (`tsconfig.json`)
 - **Runtime:** Bun 1.3.14 (Node via npx)
-- **Package manager:** npm — sole dep `@opencode-ai/plugin@1.18.4`; template version `0.24.0` (`.opencode/.version`)
+- **Package manager:** npm — sole runtime dep `@opencode-ai/plugin@1.18.4`; devDeps `typescript@7.0.2`, `@types/bun@1.3.14`, `@types/node@24.12.2`; template version `0.24.0` (`.opencode/.version`)
 - **Formatter:** `npx oxfmt $FILE` — `.ts/.tsx/.js/.jsx/.json/.jsonc/.cjs/.mjs/.mts`
 - **LSP:** enabled (`opencode.json`)
 
@@ -27,10 +27,11 @@ This repo IS the OpenCode template/configuration. Real code lives in `.opencode/
 |---|---|
 | `bun <file>` | works (1.3.14) |
 | `bash .opencode/tool/structural-check.sh` | works — enforces plugin isolation + file limits (exits 1 on failure) |
-| `bash .opencode/tool/verify.sh` | works — deterministic offline verifier (config, structural, compile smoke, diff) |
+| `bash .opencode/tool/verify.sh` | works — deterministic offline verifier (config, structural, compile smoke, semantic typecheck, diff) |
+| `bash .opencode/tool/verify-typecheck-test.sh` | works — isolated regression test for the typecheck gate |
 | `bash .opencode/tool/sync-template.sh` | regenerates `template/.opencode` from `.opencode` (shippable subset) |
+| `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` | works — semantic typecheck (pinned local `typescript@7.0.2`) |
 | `npx oxfmt <file>` | formatter (on demand) |
-| `npx tsc --noEmit` | **broken** — `typescript` is not a dependency |
 | `npm run …` | **none** — `package.json` has no `scripts` |
 | CI/CD | none |
 
@@ -57,12 +58,12 @@ Local plugins live in `.opencode/plugin/*.ts` (default-export a `Plugin`). Exter
 - **Naming:** kebab-case filenames only.
 
 ## Conventions
-- **Verify after plugin/tool edits:** run `verify.sh` (full) or `structural-check.sh` (invariants); both exit 1 on failure. No typecheck or test suite out of the box.
+- **Verify after plugin/tool edits:** run `verify.sh` (full, incl. semantic typecheck) or `structural-check.sh` (invariants); both exit 1 on failure. No test suite out of the box.
 - **Durable context:** `rg -n "topic" .opencode/artifacts/MEMORY.md` before work; append decisions there.
 - **Edit protocol / delegation / search:** see `.opencode/AGENTS.md` (behavioral kernel).
 
 ## Gotchas
-- `npx tsc` prints a stub ("not the tsc you are looking for") — `typescript` isn't installed; a 0 exit is meaningless.
+- `typescript` is a devDependency (7.0.2); use the nested `.opencode/node_modules/.bin/tsc`, never bare/`npx tsc` (which may resolve to an unpinned or missing global). Consumer templates ship without the manifest and `verify.sh` SKIPs the typecheck.
 - `structural-check.sh` exits 1 on failure; the PASS-after-FAIL size bug is fixed (size section now guards its pass). `verify.sh` aggregates all checks.
 - `plugin/sdk/` is referenced by the architecture but **does not exist yet** — create it when extracting shared types.
 - `command/ship.md` was 502 lines (over the 500 limit) — rewritten to 142 lines in the verifier-centered rework.

@@ -12,7 +12,7 @@ This file is the detailed tech-stack map (read on demand). The concise project m
 - **Framework:** OpenCode plugin SDK — `@opencode-ai/plugin@1.18.4` (template version `0.24.0`)
 - **Language:** TypeScript (ES2022, ESNext modules, bundler resolution, `strict: false`, Bun types)
 - **Runtime:** Bun 1.3.14 (Node via npx)
-- **Package manager:** npm (package-lock.json; no `scripts` defined)
+- **Package manager:** npm (package-lock.json; no `scripts` defined; devDeps tracked: `typescript@7.0.2`, `@types/bun@1.3.14`, `@types/node@24.12.2`)
 
 ## Styling & UI
 
@@ -31,13 +31,14 @@ This file is the detailed tech-stack map (read on demand). The concise project m
 - **E2E Tests:** none
 - **Coverage Target:** N/A
 - **Verification:** `bash .opencode/tool/verify.sh` (deterministic offline runner; exits 1 on failure) or `bash .opencode/tool/structural-check.sh` (structural invariants only; exits 1 on failure)
+- **Typecheck regression:** `bash .opencode/tool/verify-typecheck-test.sh` (isolated fixtures; covers PASS/FAIL/SKIP)
 
 ## Key Constraints
 
 - Plugin isolation: plugins import SDK only — never each other. Shared types → `plugin/sdk/` (not yet on disk).
 - File size limits: plugins ≤300 lines, SDK ≤150, commands ≤500, workflows ≤150.
 - Filename convention: kebab-case only.
-- `typescript` is NOT a dependency → `npx tsc --noEmit` is unavailable (prints a stub; 0 exit is meaningless).
+- `typescript` is a devDependency (7.0.2, exact); semantic typecheck runs via `verify.sh` using the pinned local `.opencode/node_modules/.bin/tsc`. Consumer templates ship without the manifest and the verifier SKIPs the typecheck.
 - Never edit `template/` (untracked reference copy) or generated `dist/`.
 
 ## Active Integrations
@@ -77,8 +78,11 @@ bash .opencode/tool/structural-check.sh
 # Formatter (on demand)
 npx oxfmt <file>
 
-# Type checking — UNAVAILABLE unless typescript is added as a dependency
-# npx tsc --noEmit   # currently broken: typescript not installed
+# Semantic typecheck (pinned local compiler)
+.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json
+
+# Typecheck gate regression test (isolated fixtures)
+bash .opencode/tool/verify-typecheck-test.sh
 ```
 
 ---

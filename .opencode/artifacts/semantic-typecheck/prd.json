@@ -2,7 +2,7 @@
   "slug": "semantic-typecheck",
   "title": "Semantic Typecheck Gate",
   "created": "2026-07-22",
-  "status": "ready",
+  "status": "complete",
   "goal": "Add a real semantic TypeScript typecheck gate to verify.sh, offline and deterministic, skip-if-absent so consumers stay clean, and fix the baseline type errors it surfaces.",
   "depends_on": [],
   "parallel": false,

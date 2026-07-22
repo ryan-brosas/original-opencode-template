@@ -58,7 +58,7 @@ bash .opencode/tool/verify.sh
 ```
 
 This is deterministic and offline: config validation, structural invariants, Bun
-compile smoke, `git diff --check`. Exit 1 = not done.
+compile smoke, TypeScript semantic typecheck, `git diff --check`. Exit 1 = not done.
 
 **Task-specific check:** run the real command the change implies (the project's
 test/lint/typecheck, a smoke `bun <file>`, a `git diff --check`, or a manual

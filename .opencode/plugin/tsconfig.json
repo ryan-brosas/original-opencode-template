@@ -9,7 +9,7 @@
     "noImplicitAny": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node", "bun-types"]
+    "types": ["node", "bun"]
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules"]

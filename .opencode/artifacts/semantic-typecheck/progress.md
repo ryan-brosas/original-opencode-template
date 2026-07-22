@@ -36,3 +36,38 @@ Verification:
 - `rg` scan of plan.md for `git add .|git add -A|--no-verify|force push|--force|reset --hard|checkout .|clean -fd|@ts-nocheck|as any|@ts-ignore` → no plan.md matches (the only hits are in spec/prd, all are explicit prohibitions with documented reasons)
 
 **Status:** plan ready; awaiting `/ship semantic-typecheck`.
+
+## 2026-07-22 — Shipped (`/ship semantic-typecheck`)
+
+Plans 1-4 executed as one work unit (no interim commit). All gates green.
+
+**Changed files (staged together):**
+- `.opencode/.gitignore` (trimmed: keep node_modules/bun.lock/.fallow; package files now tracked)
+- `.opencode/package.json` + `.opencode/package-lock.json` (added typescript@7.0.2, @types/bun@1.3.14, @types/node@24.12.2 — exact pins)
+- `.opencode/tsconfig.json` + `.opencode/plugin/tsconfig.json` (types: ["node","bun-types"] -> ["node","bun"]; root strict:false / plugin strict:true preserved)
+- `.opencode/plugin/guard.ts:20` (narrow unknown -> string)
+- `.opencode/plugin/diagnostics/bun.d.ts` (deleted — official @types/bun owns Bun.spawn array-form + Subprocess.kill)
+- `.opencode/tool/verify-typecheck-test.sh` (new — isolated mktemp -d regression test, 4 cases, never mutates real toolchain)
+- `.opencode/tool/verify.sh` (4 -> 5 checks; typecheck = Check 4/5; nested pinned tsc; consumer SKIP: npm ci hint when package.json present, dev-repo note when absent)
+- `.opencode/tool/sync-template.sh` (generic artifact allowlist: ship MEMORY.md/todo.md/example/** only; removed hardcoded artifact exclusions)
+- `AGENTS.md`, `.opencode/command/verify.md`, `.opencode/command/ship.md`, `.opencode/README.md`, `.opencode/tech-stack.md` (5-check docs; stale "no typecheck" claims fixed)
+- `.opencode/artifacts/MEMORY.md` + `.opencode/roadmap.md` + `.opencode/state.md` (durable closeout: new decision, typecheck out of Deferred)
+- `.opencode/.template-manifest.json` (regenerated, 594 files)
+- `.opencode/artifacts/semantic-typecheck/{spec,prd.json,plan,progress}.md` (status -> Complete)
+- `.opencode/artifacts/.active` (removed — feature complete)
+
+**Final Verification Battery (all exit 0):**
+- `npm ci --prefix .opencode` -> 0 vulnerabilities
+- `.opencode/node_modules/.bin/tsc --version` -> Version 7.0.2
+- `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` -> exit 0
+- `bash .opencode/tool/verify-typecheck-test.sh` -> exit 0 (4/4 cases)
+- `npm_config_offline=true bash .opencode/tool/verify.sh` -> exit 0 (5/5, typecheck PASS)
+- `bash .opencode/tool/structural-check.sh` -> exit 0
+- `bash .opencode/tool/sync-template.sh` -> 594 files synced
+- `bash template/.opencode/tool/verify-typecheck-test.sh` -> exit 0 (4/4 cases)
+- `npm_config_offline=true bash template/.opencode/tool/verify.sh` -> exit 0 (5/5, typecheck SKIP "dev-repo only (no package manifest)")
+- `git diff --check` -> exit 0
+
+**Plan 1 RED:** 3 standalone tsc errors (lang-runners.ts:22 spawn arg-arity, lang-runners.ts:31 missing kill, guard.ts:20 unknown->string). GREEN: guard.ts narrowing + bun.d.ts removal (lang-runners needed NO change — real @types/bun has array-form spawn + Subprocess.kill). Under the >10 stop threshold.
+
+**Status:** shipped; artifact complete.

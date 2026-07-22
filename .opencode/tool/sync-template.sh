@@ -3,9 +3,14 @@
 #
 # Copies every shippable file from .opencode/ to template/.opencode/, removes template
 # files that no longer ship, and regenerates .template-manifest.json with fresh SHA-256
-# hashes. Working-state files (node_modules, .fallow, package*.json, .gitignore, roadmap.md,
-# state.md, tech-stack.md, artifacts/.active, artifacts/template-harness-v2, and the
-# manifest itself) are excluded.
+# hashes. Working-state files (node_modules, .fallow, .fallowrc.json, package*.json,
+# bun.lock, .gitignore, roadmap.md, state.md, tech-stack.md, and the manifest itself) are
+# excluded.
+#
+# Artifacts use a generic allowlist: under artifacts/, only MEMORY.md, todo.md, and
+# example/** ship. Every other artifact path (active feature dirs, specs, plans,
+# progress, .active, research notes) is excluded — so no working feature leaks into
+# the generated template.
 #
 # This is the export mechanism that keeps the untracked template/ reference copy in sync
 # without hand-editing it. Run after meaningful .opencode changes:
@@ -25,7 +30,8 @@ if [[ ! -d "$SRC" ]]; then
   exit 1
 fi
 
-# Working-state exclusions: a relative path ships unless it equals one of these or sits
+# General working-state exclusions (everything except artifacts/, which uses an
+# allowlist below). A relative path ships unless it equals one of these or sits
 # beneath one of these as a directory prefix.
 EXCLUDES=(
   "node_modules"
@@ -39,8 +45,6 @@ EXCLUDES=(
   "state.md"
   "tech-stack.md"
   ".template-manifest.json"
-  "artifacts/.active"
-  "artifacts/template-harness-v2"
 )
 
 is_excluded() {
@@ -53,12 +57,24 @@ is_excluded() {
   return 1
 }
 
+# Generic artifact allowlist: a path under artifacts/ ships only if it is MEMORY.md,
+# todo.md, or beneath example/. Everything else (feature dirs, .active, specs/plans/
+# progress/research for in-flight work) is excluded.
+ships_artifact() {
+  local rel="$1"
+  [[ "$rel" == "artifacts/MEMORY.md" || "$rel" == "artifacts/todo.md" || "$rel" == "artifacts/example/"* ]]
+}
+
 # Build the shippable file list (relative paths, sorted, no leading ./).
 mapfile -t raw < <(cd "$SRC" && find . -type f -not -path './node_modules/*')
 ship=()
 for f in "${raw[@]}"; do
   rel="${f#./}"
-  if ! is_excluded "$rel"; then
+  if [[ "$rel" == artifacts/* ]]; then
+    if ships_artifact "$rel"; then
+      ship+=("$rel")
+    fi
+  elif ! is_excluded "$rel"; then
     ship+=("$rel")
   fi
 done

@@ -151,6 +151,12 @@ bash .opencode/tool/structural-check.sh
 
 # Formatter (on demand)
 npx oxfmt <file>
+
+# Semantic typecheck standalone (pinned local compiler)
+.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json
+
+# Typecheck gate regression test (isolated fixtures)
+bash .opencode/tool/verify-typecheck-test.sh
 ```
 
-No `npm run` scripts exist (`package.json` has none). `tsc` is unavailable (`typescript` is not a dependency).
+No `npm run` scripts exist (`package.json` has none). Semantic typecheck runs via `verify.sh` using the pinned local `.opencode/node_modules/.bin/tsc` (`typescript`@7.0.2 is a devDependency); bare `npx tsc` is not used.

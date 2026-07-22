@@ -116,7 +116,7 @@ do not restore every-turn injection.
 ## Deferred
 
 - `plugin/sdk/` until two plugins share a contract
-- TypeScript devDep / semantic typecheck while `package.json` is gitignored
+- Strictness migration (`strict:false` → `true`) — non-goal of the semantic-typecheck gate
 - Vector/graph memory; always-on repo maps; heavy telemetry; benchmark infra
 - Automated `.opencode` ↔ `template/.opencode` sync
 - Default multi-agent swarms

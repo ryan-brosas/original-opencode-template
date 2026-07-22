@@ -2,7 +2,7 @@
 
 **Slug:** semantic-typecheck
 **Created:** 2026-07-22
-**Status:** Ready
+**Status:** Complete
 
 ## Bead Metadata
 
