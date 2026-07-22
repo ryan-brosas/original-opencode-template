@@ -90,6 +90,7 @@ Opencode lists available skills in the system prompt with name + description. Be
 | Paths         | Use absolute paths for file operations.                                                                |
 | Search        | Never use shell `grep`/`egrep`/`fgrep`/`git grep` in `bash`. Use `rg -n` or the dedicated `grep` tool. |
 | Reversibility | Ask first before destructive or irreversible actions.                                                  |
+| Boundary      | Stay within the workspace root; `external_directory: deny` walls off sibling repos/folders.           |
 
 ## Multi-Agent Safety
 

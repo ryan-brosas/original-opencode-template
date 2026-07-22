@@ -100,7 +100,7 @@
     },
     "doom_loop": "ask",
     "edit": "allow",
-    "external_directory": "ask",
+    "external_directory": "deny",
     "question": "allow",
     "read": {
       "*": "allow",
