@@ -91,7 +91,7 @@ The launcher is authoritative; the static check + liveness guard are defense-in-
 - **Existing enforcement (DONE):** root `permission.external_directory: "deny"` (`4ce663b`); AGENTS.md Boundary row (`4ce663b`); structural-check Check 7 (`33be136`).
 - **Plugin hook:** `tool.execute.before` is `Promise<void>`, mutates `output.args` in place, throw-to-abort (`.opencode/node_modules/@opencode-ai/plugin/dist/index.d.ts:235-241`). NOT used as a path scanner.
 - **Test placement:** top-level `.opencode/plugin/*.ts` and `.opencode/tool/*.ts` are auto-loaded at startup — test files MUST sit below discovery depth (`.opencode/tool/repo-boundary/`) and run via `bun test`.
-- **Verifier limits:** `verify.sh:29-34` runs config validation with `OPENCODE_PURE=1` (plugins disabled); `verify.sh:54-64` compiles TS but does NOT run tests. The invariant + real-bwrap integration must be wired into verify.sh explicitly; missing bwrap/userns is a hard FAIL, never a SKIP.
+- **Verifier limits:** `verify.sh:29-34` runs config validation with `OPENCODE_PURE=1` (plugins disabled); `verify.sh:54-64` compiles TS but does NOT run tests. `verify.sh` is a "deterministic offline" runner (header line 2) and all four `*-test.sh` regression scripts are standalone — the static boundary invariant is verified by `verify.sh` via `structural-check.sh` Check 7; the runtime bwrap containment test (`opencode-sandbox-test.sh`) is NOT wired into `verify.sh`, by design (bwrap is opt-in/Linux-only/setuid-required; wiring would SKIP on most consumers or hard-FAIL them). Run `opencode-sandbox-test.sh` on demand to verify runtime containment.
 - **Isolated test pattern:** `.opencode/tool/verify-typecheck-test.sh` (mktemp fixtures, cleanup trap, copies of real scripts, no real-config mutation); `.opencode/tool/repo-boundary-invariant-test.sh` (DONE) follows it.
 
 ## Affected Files
@@ -105,7 +105,7 @@ The launcher is authoritative; the static check + liveness guard are defense-in-
 - `.opencode/tool/sync-template.sh` (edit) — exclude `.sandbox-state/`; regenerate manifest.
 - `.opencode/tool/structural-check.sh` (DONE, `33be136`) — Check 7.
 - `.opencode/tool/repo-boundary-invariant-test.sh` (DONE, `33be136`) — Check 7 regression tests.
-- `.opencode/tool/verify.sh` (edit) — wire invariant + real-bwrap tests; missing bwrap = hard FAIL.
+- `.opencode/tool/verify.sh` (NOT edited, by design) — verify.sh stays deterministic/offline; the static boundary invariant is covered via `structural-check.sh` Check 7; the runtime bwrap test is standalone (`opencode-sandbox-test.sh`).
 - `AGENTS.md`, `.opencode/README.md`, `.opencode/tech-stack.md`, `.opencode/command/verify.md` (edit) — document the sandbox.
 - `.opencode/artifacts/MEMORY.md`, `.opencode/roadmap.md`, `.opencode/state.md` (edit) — decision + closeout.
 - `.opencode/artifacts/repo-boundary-enforcement/{spec.md,prd.json,plan.md,progress.md}` (this artifact set).

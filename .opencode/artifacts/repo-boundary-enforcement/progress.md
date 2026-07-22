@@ -114,7 +114,25 @@ Result: PASS — all gates green
 
 Docs cover the 5 plan concepts, concentrated in README.md (not auto-injected) with brief pointers in AGENTS.md/tech-stack.md/verify.md (auto-injected or read-on-demand, kept short). Wording aligned with `opencode-sandbox.conf.example` (setuid, sandbox-local XDG, host $HOME never mounted, auth import). verify.md clarifies the static invariant is a verify.sh Check 2 while the runtime launcher is separate/optional — not a verify.sh check. Skipped formal review (docs-only prose summarizing already-shipped + already-reviewed behavior).
 
+## Shipped: Plan 02 Task 1 — verify.sh bwrap wiring decision (not wired, by design)
+
+Changed: `.opencode/artifacts/repo-boundary-enforcement/plan.md:88-93,123` (Task 1 section + dependency wave), `spec.md:94,108` (Verifier limits + Affected Files), `prd.json:104-117` (task title/end_state/files/status/note), `progress.md` (this block + open-work list)
+Commands: `bash .opencode/tool/verify.sh` (exit 0, unchanged — no code change), `bun -e 'JSON.parse(...)' prd.json` (valid JSON), `rg "hard FAIL|wired into verify|verify\.sh.*bwrap integration" .opencode/artifacts/repo-boundary-enforcement/` (no stale claims remain)
+Result: PASS — decision recorded across all artifacts; no verify.sh code change
+
+### Decision (user-confirmed, 2026-07-22)
+
+**The runtime bwrap containment test (`opencode-sandbox-test.sh`) is NOT wired into `verify.sh`, by design.** The static boundary invariant IS verified by `verify.sh` Check 2/5 via `structural-check.sh` Check 7 (DONE `33be136`).
+
+### Rationale (grounded)
+
+- `verify.sh` is explicitly a "Deterministic offline verification runner" (header line 2): no network, no cache, no auto-fix, fixed-order checks. A bwrap-gated check is environmental (bwrap presence is host-dependent), not deterministic.
+- ALL four existing `*-test.sh` regression scripts are standalone, not wired into `verify.sh` — including `repo-boundary-invariant-test.sh` (the static invariant regression test) and `verify-typecheck-test.sh` (the typecheck-gate regression test). Wiring only the bwrap test in would break the established pattern.
+- bwrap is opt-in, Linux-only, and setuid-required (`sudo chmod u+s /usr/bin/bwrap` — a privileged user action). `verify.sh` ships to ALL consumers. Wiring would either SKIP on most consumer hosts (noise, erodes the deterministic-offline contract) or hard-FAIL them (the plan's literal wording — breaks ALL their verification: typecheck, structural, config — not just the boundary check).
+- The runtime sandbox is verified on demand via `opencode-sandbox-test.sh` (45 assertions, real bwrap, proven containment — R1/R2/R3/R4). No regression coverage is lost: the standalone test runs whenever the sandbox is exercised (e.g., at Task 3 activation, `--active`).
+
+Rejected alternatives: SKIP-when-bwrap-unavailable (adds noise, erodes contract); hard-FAIL (breaks non-Linux-setuid consumers); separate `verify-sandbox.sh` (adds a second verifier to maintain, redundant with the existing standalone test).
+
 ## Open work
 
-- **Plan 02 Task 1 (remainder)** — **ARCHITECTURE DECISION PENDING (user):** the plan says wire the launcher + real-bwrap into `verify.sh` with "missing bwrap = hard FAIL not SKIP". But `verify.sh` has an established SKIP convention (Check 4 typecheck SKIPs when the compiler is absent — `verify.sh:14,68-69,82-86`; header line 5: "SKIPs do not fail") and ships to ALL consumers. Hard-failing on missing bwrap would break `verify.sh` for every macOS/WSL/non-setuid-bwrap consumer, blocking ALL their verification (typecheck, structural, config) — not just the boundary check. Options: (a) SKIP-when-bwrap-unavailable (matches verify.sh's existing portability contract; catches regressions WHERE bwrap is present); (b) hard-FAIL (matches the plan's literal wording; breaks non-Linux-setuid consumers); (c) separate `verify-sandbox.sh` invoked only when the sandbox is active (Task 3). Needs user decision before wiring.
 - **Plan 02 Task 3** — manual activation + evidence closeout (USER checkpoint: install wrapper outside workspace, restart, `opencode-sandbox-test.sh --active`, then record + remove `.active`). Hard manual checkpoint — cannot complete autonomously.

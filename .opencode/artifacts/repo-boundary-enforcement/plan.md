@@ -87,10 +87,10 @@ files:
 
 ### Task 1 — Static invariants + verification (partial-done, 33be136)
 
-`structural-check.sh` Check 7 asserts `external_directory == "deny"` (DONE). `verify.sh` wires the invariant test + real-bwrap integration; missing bwrap/userns = hard FAIL not SKIP. Outside-sandbox = real bwrap; inside-sandbox = root/mount/canary liveness (no nested bwrap).
+`structural-check.sh` Check 7 asserts `external_directory == "deny"` (DONE). The static boundary invariant is already verified by `verify.sh` Check 2/5 via `structural-check.sh`. The runtime bwrap containment test (`opencode-sandbox-test.sh`) stays **standalone** — it is NOT wired into `verify.sh`, by design: `verify.sh` is a "deterministic offline" runner (no network/cache, fixed-order) and all four existing `*-test.sh` regression scripts are standalone; bwrap is opt-in, Linux-only, and setuid-required, so a bwrap-gated check would either SKIP on most consumer hosts (noise) or hard-FAIL them (breaks all their verification). The runtime sandbox is verified on demand via `opencode-sandbox-test.sh` (45 assertions, real bwrap, proven containment).
 
 **Verify:** `bash .opencode/tool/verify.sh` (exit 0) && `bash .opencode/tool/repo-boundary-invariant-test.sh` (exit 0).
-**Status:** Check 7 + invariant test DONE (`33be136`); verify.sh bwrap integration pending Plan 01 Task 2.
+**Status:** Check 7 + invariant test DONE (`33be136`); verify.sh bwrap wiring RESOLVED — not wired by design (user decision, 2026-07-22).
 
 ### Task 2 — Package without exporting state (feature)
 
@@ -120,7 +120,7 @@ RED: export assertion fails (`.sandbox-state/` would ship). GREEN: `sync-templat
 ## Dependency waves
 
 1. Plan 01 Task 1 (reconcile) → Plan 01 Task 2 (launcher) → Plan 01 Task 3 (liveness guard)
-2. Plan 02 Task 1 (invariant — partial-done) ‖ Plan 01 (independent except verify.sh wiring needs the launcher)
+2. Plan 02 Task 1 (invariant — DONE; verify.sh wiring resolved as not-wired-by-design) ‖ Plan 01
 3. Plan 02 Task 2 (packaging) ← Plan 01 Tasks 2-3
 4. Plan 02 Task 3 (activation closeout) ← Plan 02 Task 2
 
