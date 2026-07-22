@@ -323,3 +323,50 @@ Promotion + Release Transaction. TDD: RED (stubs) → GREEN (implementation).
 - `git diff --check` → exit 0
 
 **Status:** Plan 5 complete + shipped. Plans 6–7 pending.
+
+## 2026-07-22 — Shipped (`/ship skill-mine` Plan 6)
+
+Plan 6: Usage Telemetry, Gated by Runtime Proof. TDD: RED (stubs) → GREEN.
+
+**Task 6.1 — Native skill-hook proof (data layer + plugin):**
+- `tool/skill-mine/usage.ts` (new): `appendUsage` (validates shape, writes
+  JSONL at 0600, records ONLY {skill, sessionID, timestamp}); `readUsage`
+  (skips malformed lines, dedupes exact duplicates, empty-when-missing).
+- `plugin/skill-mine-telemetry.ts` (new, 57 lines): passive observer for
+  `tool.execute.after` when `tool === "skill"`. Self-contained per the
+  plugin-isolation invariant — reads runtimeRoot from skill-mine.json with a
+  minimal inline parse (no tool/ import). Never breaks the observed tool call
+  (every branch wrapped in try/catch). Under the 300-line plugin limit.
+- `cli.ts` updated: `usage record <name> [--session <id>]` (manual fallback
+  when the hook is unobservable), `usage report`, `usage recommend`.
+- `command/skill-mine.md` updated: telemetry section + usage commands + live
+  hook proof instructions + "unknown vs unused" semantics.
+
+**Task 6.2 — Reporting + retirement recommendations:**
+- `usageReport(cfg, {skills})`: per-skill {invocations, distinctSessions,
+  lastUsed, status}. Missing telemetry → "unknown" (NOT "unused"). Active
+  telemetry + 0 invocations → "unused". Active + >0 → "used".
+- `recommendRetirement(cfg, {skills})`: only "unused" skills (telemetry
+  active, zero invocations). Excludes "unknown" (cannot be proven unused).
+  Never auto-retires — returns recommendations only.
+
+**Live hook proof (user step):** restart opencode, invoke a known skill, run
+`usage report`. If invocations > 0 → plugin is live. If 0 → the native skill
+call does not reach `tool.execute.after`; use `usage record <name>` manually.
+
+**Verification (Plan 6, all exit 0):**
+- `bun test ./.opencode/tool/skill-mine/` → 132 pass, 0 fail (256 expect calls;
+  +18 vs Plan 5's 114)
+- `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` → exit 0
+  (plugin compiles cleanly)
+- `bash .opencode/tool/structural-check.sh` → exit 0 (plugin kebab-case,
+  ≤300 lines, no cross-plugin imports)
+- `npm_config_offline=true bash .opencode/tool/verify.sh` → exit 0 (5/5 PASS,
+  typecheck PASS, Bun compile smoke passes the new plugin)
+- `bash .opencode/tool/sync-template.sh` → 622 files; .skill-mine +
+  project-skills absent (no leaks), telemetry plugin + usage.ts ship
+- CLI smoke: `usage record` → 0600 perms; `usage report` → telemetryActive=true,
+  2 invocations/2 sessions; `usage recommend` → [] (used skill not recommended)
+- `git diff --check` → exit 0
+
+**Status:** Plan 6 complete + shipped. Plan 7 pending.

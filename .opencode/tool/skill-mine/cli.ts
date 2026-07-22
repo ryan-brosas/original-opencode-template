@@ -26,7 +26,8 @@ import { writeCandidate, candidateDir } from "./candidate.js";
 import { validateCandidate } from "./candidate.js";
 import { recordApproval } from "./evaluate.js";
 import { retire, restore, recover, promote, rollbackPromote } from "./lifecycle.js";
-import { checkBudget } from "./budget.js";
+import { checkBudget, scanMinedSkills } from "./budget.js";
+import { appendUsage, usageReport, recommendRetirement } from "./usage.js";
 import type { ProvisionalInput } from "./types.js";
 import type { ApprovalInput } from "./evaluate.js";
 
@@ -162,6 +163,40 @@ async function main(): Promise<number> {
       await rollbackPromote(name, cfg);
       console.log(`rolled back: ${name}`);
       return 0;
+    }
+    case "usage": {
+      const action = rest[0];
+      if (!action) {
+        console.error("usage: cli.ts usage <record|report|recommend> [args]");
+        return 2;
+      }
+      if (action === "record") {
+        const name = rest[1];
+        if (!name) {
+          console.error("usage: cli.ts usage record <skillName> [--session <id>]");
+          return 2;
+        }
+        const sessionFlag = rest.indexOf("--session");
+        const sessionID =
+          sessionFlag >= 0 && rest[sessionFlag + 1] ? rest[sessionFlag + 1] : "manual";
+        appendUsage({ skill: name, sessionID, timestamp: Date.now() }, cfg);
+        console.log(`recorded: ${name}`);
+        return 0;
+      }
+      if (action === "report") {
+        const mined = scanMinedSkills(cfg);
+        const report = usageReport(cfg, { skills: mined.map((s) => s.name) });
+        console.log(JSON.stringify(report, null, 2));
+        return 0;
+      }
+      if (action === "recommend") {
+        const mined = scanMinedSkills(cfg);
+        const recs = recommendRetirement(cfg, { skills: mined.map((s) => s.name) });
+        console.log(JSON.stringify(recs, null, 2));
+        return 0;
+      }
+      console.error(`unknown usage action: ${action}`);
+      return 2;
     }
     default: {
       console.error(`unknown subcommand: ${subcommand}`);

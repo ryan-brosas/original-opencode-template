@@ -44,6 +44,15 @@ bun .opencode/tool/skill-mine/cli.ts promote <candidateName> < evidence.json
 
 # 9. Rollback a promotion (move a promoted skill back to quarantine)
 bun .opencode/tool/skill-mine/cli.ts rollback <skillName>
+
+# 10. Record manual usage (fallback when the telemetry plugin hook is unobservable)
+bun .opencode/tool/skill-mine/cli.ts usage record <skillName> [--session <id>]
+
+# 11. Print usage report for all mined skills
+bun .opencode/tool/skill-mine/cli.ts usage report
+
+# 12. Print retirement recommendations (telemetry-active, zero invocations)
+bun .opencode/tool/skill-mine/cli.ts usage recommend
 ```
 
 ## Lifecycle
@@ -177,6 +186,37 @@ bun .opencode/tool/skill-mine/cli.ts rollback <skillName>
 Rollback moves the skill back to quarantine so it is not left active but
 unshipped. All three operations (promote, rollback, validate) require an
 opencode restart to take effect in the live catalog.
+
+### 6. Usage Telemetry
+
+The optional `skill-mine-telemetry` plugin passively observes
+`tool.execute.after` when `tool === "skill"` and appends a single
+`{skill, sessionID, timestamp}` record to the ignored local log
+(`.opencode/.skill-mine/usage.jsonl`, 0600). It records no prompts, content,
+or output, and never breaks the observed tool call.
+
+**Live hook proof (required once):** restart opencode, invoke a known skill,
+then run `usage report`. If the skill shows invocations > 0, the plugin is
+live. If invocations stay 0 (the hook does not fire on native skill calls),
+use the manual fallback instead and leave the plugin installed as a no-op
+safety net.
+
+```bash
+# Manual fallback: record a usage after invoking a skill
+bun .opencode/tool/skill-mine/cli.ts usage record <skillName>
+
+# Inspect usage across all mined skills (status: used | unused | unknown)
+bun .opencode/tool/skill-mine/cli.ts usage report
+
+# Get evidence-backed retirement recommendations (never auto-retires)
+bun .opencode/tool/skill-mine/cli.ts usage recommend
+```
+
+Missing telemetry (no log file) marks every skill "unknown" — never "unused",
+since zero invocations cannot be distinguished from an inactive observer.
+Retirement recommendations only include skills where telemetry IS active but
+the skill has zero invocations. Recommendations never retire automatically;
+run `retire <name>` explicitly.
 
 ## Privacy Rules
 
