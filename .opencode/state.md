@@ -7,10 +7,10 @@ updated: 2026-07-22
 
 ## Current Position
 
-**Active Plan:** skill-mine — Plans 1–3 shipped; Plans 4–7 pending
-**Status:** Plan 3 (Candidate Admission + Behavioral Approval) complete + shipped; quarantine + isolated loader + hash-bound approval green (72 tests)
+**Active Plan:** skill-mine — Plans 1–4 shipped; Plans 5–7 pending
+**Status:** Plan 4 (Governance Before Promotion) complete + shipped; retire/restore + crash recovery + catalog/scope budgets green (98 tests)
 **Started:** 2026-07-22
-**Phase:** skill-mine — Plans 1–3 done, Plan 4 next
+**Phase:** skill-mine — Plans 1–4 done, Plan 5 next
 
 ## Recent Completed Work
 
@@ -38,6 +38,7 @@ updated: 2026-07-22
 | 2026-07-22 | skill-mine Plan 1 shipped | Control plane + validation contracts: tracked `.opencode/skill-mine.json`, `tool/skill-mine/{config,schema}.ts` (loadConfig/bootstrapRuntime + validateSkill generic+mined-admission + privacy scan), `skills.paths` registered, `.skill-mine` gitignored, sync excludes project-skills + runtime; 22 bun tests pass, typecheck + verify.sh 5/5 green |
 | 2026-07-22 | skill-mine Plan 2 shipped | Completion evidence + private capture: `types.ts` + `receipts.ts` (prepareReceipt/finalizeReceipt, git binding, idempotency, no-new-commit guard) + `capture.ts` (commit-type check, tree re-validate, privacy scan over summary/risks/paths) + `cli.ts` (prepare/finalize/capture) + schema `scanFreeText` export (ASIA + long-hex entropy); ship flow wired (build.md/ship.md). Read-only review found 7 P1+4 P2; fixed 6 P1+2 P2 inline (traversal, nested-check, idempotency, tree-OID, no-new-commit, ASIA, path-escape, perms); rejected ls-remote (offline mandate); deferred atomic-write + consumer-ignore to Plan 7. 44 tests pass, verify.sh 5/5 green |
 | 2026-07-22 | skill-mine Plan 3 shipped | Candidate admission + behavioral approval: `loader.ts` (isolated temp-project loader, file-redirect fix for opencode stdout truncation) + `candidate.ts` (quarantine writeCandidate, smokeHelpers, validateCandidate) + `evaluate.ts` (hash-bound approval: baseline must fail, 2 treatments pass ≥4/5, independent judge, contentHash invalidation) + `cli.ts` distill/evaluate + `command/skill-mine.md` (lifecycle orchestration). 72 tests pass, verify.sh 5/5 green |
+| 2026-07-22 | skill-mine Plan 4 shipped | Governance before promotion: `lifecycle.ts` (retire/restore/recover: lock+journal+same-filesystem rename, crash recovery/rollback, rejects non-mined, idempotent) + `budget.ts` (scanMinedSkills, checkBudget count+per-desc+aggregate, checkTemplatePromotionEvidence ≥2 projects+≥2 models) + `cli.ts` retire/restore/recover/budget subcommands + `command/skill-mine.md` retire/restore docs. 98 tests pass, verify.sh 5/5 green |
 
 ## Active Decisions
 
@@ -95,13 +96,14 @@ updated: 2026-07-22
 18. [x] `/ship skill-mine` Plan 1 — Control plane + validation contracts shipped; config/schema TDD green; skills.paths + sync scope boundary; verify.sh 5/5
 19. [x] `/ship skill-mine` Plan 2 — Completion evidence + private capture (receipts + sanitized capture)
 20. [x] `/ship skill-mine` Plan 3 — Candidate admission + behavioral approval (quarantine + isolated loader + hash-bound approval)
-21. [ ] `/ship skill-mine` Plan 4 — Governance before promotion (retire/restore + catalog/scope budgets)
+21. [x] `/ship skill-mine` Plan 4 — Governance before promotion (retire/restore + crash recovery + catalog/scope budgets)
+22. [ ] `/ship skill-mine` Plan 5 — Promotion + release transaction (atomic promotion, full isolated lifecycle test)
 
 ## Session Handoff
 
-**Last Session:** 2026-07-22 (`/ship skill-mine` Plan 3 shipped: candidate admission + behavioral approval; loader.ts + candidate.ts + evaluate.ts + cli.ts distill/evaluate + command/skill-mine.md; 72 tests pass, verify.sh 5/5 green)
-**Next Session Priority:** `/ship skill-mine` Plan 4 — Governance Before Promotion. Tasks: 4.1 retire/restore + crash recovery (lifecycle.ts: lock + journal + same-filesystem rename; retire moves mined skills to archive; restore reinstates when destination free; rollback for incomplete ops; retire→restore twice for idempotency); 4.2 catalog + scope governance (budget.ts: count `metadata.origin: skill-mine` only; enforce max count + per-description + aggregate byte budgets; project scope → project-skills root; template scope → skill root + requires evidence from ≥2 projects + ≥2 runtime/model identities; assert project-scoped fixtures never enter template manifest). Treat Plan 4 as one work unit; Ship-on-Completion after verify.sh green. Stop if retire/restore tests fail (promotion stays disabled) or project-scoped content leaks into template export.
-**Known Issues:** (none — Plan 3 green and shipped)
+**Last Session:** 2026-07-22 (`/ship skill-mine` Plan 4 shipped: governance before promotion; lifecycle.ts retire/restore/recover + budget.ts catalog/scope budgets + cli.ts budget subcommand; 98 tests pass, verify.sh 5/5 green)
+**Next Session Priority:** `/ship skill-mine` Plan 5 — Promotion + Release Transaction. Tasks: 5.1 atomic promotion (lifecycle.ts: revalidate + lock + journal + same-filesystem rename to scope-specific root; reject absent lint/behavioral approval, stale content hash, active lock, destination collision, budget overflow, wrong scope evidence; promotion does NOT commit — `/ship` owns the Git release; on outer verify/release failure, move skill back to quarantine); 5.2 full isolated lifecycle test (skill-mine-integration-test.sh: temp project + bare remote; exercise receipt→capture→quarantine→admission→approval→promote→fresh-process loader→retire→restore→push-failure rollback; confirm runtime state ignored; confirm no project-scoped skill in template manifest). Treat Plan 5 as one work unit; Ship-on-Completion after verify.sh green. Stop if promotion is not atomic, or release boundary competes with /ship, or isolated lifecycle test fails.
+**Known Issues:** (none — Plan 4 green and shipped)
 **Context Links:** `.opencode/artifacts/skill-mine/{spec,plan,progress,prd.json}`, `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/MEMORY.md`
 **Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main)
 

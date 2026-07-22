@@ -26,6 +26,15 @@ bun .opencode/tool/skill-mine/cli.ts distill <candidateName> < skill.md
 
 # 3. Record behavioral approval (reads ApprovalInput JSON from stdin)
 bun .opencode/tool/skill-mine/cli.ts evaluate <candidateName> < approval.json
+
+# 4. Retire a mined skill (move from active root to archive)
+bun .opencode/tool/skill-mine/cli.ts retire <skillName>
+
+# 5. Restore an archived skill back to its original scope
+bun .opencode/tool/skill-mine/cli.ts restore <skillName>
+
+# 6. Recover/rollback a crashed retire or restore
+bun .opencode/tool/skill-mine/cli.ts recover <skillName>
 ```
 
 ## Lifecycle
@@ -104,6 +113,28 @@ EOF
 
 5. **User confirmation:** Do NOT promote without explicit user confirmation
    of promotion eligibility.
+
+### 4. Retire and Restore
+
+Retire moves a MINED skill (metadata.origin: skill-mine) from its active root
+into the ignored archive. Hand-authored skills are never retired by this
+command. Restore moves an archived skill back to its original scope root,
+only when the destination is free.
+
+```bash
+bun .opencode/tool/skill-mine/cli.ts retire <skillName>
+bun .opencode/tool/skill-mine/cli.ts restore <skillName>
+```
+
+If a retire or restore is interrupted, recover cleans up the stale lock and
+completes or rolls back the operation based on whether the rename happened:
+
+```bash
+bun .opencode/tool/skill-mine/cli.ts recover <skillName>
+```
+
+Both operations require an opencode restart to take effect (the skill loader
+is startup-scanned, not hot-reloaded).
 
 ## Privacy Rules
 

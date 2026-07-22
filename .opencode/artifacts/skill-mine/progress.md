@@ -216,3 +216,50 @@ Plan 3: Candidate Admission and Behavioral Approval. Both tasks TDD (RED → GRE
 - `git diff --check` → exit 0
 
 **Status:** Plan 3 complete + shipped. Plans 4–7 pending.
+
+## 2026-07-22 — Plan 4 shipped (`/ship skill-mine`)
+
+Governance Before Promotion: retire/restore + crash recovery, and catalog/scope
+budgets.
+
+### Task 4.1 — Retire, restore and crash recovery
+
+- `lifecycle.ts` (new): `retire` moves a mined skill (metadata.origin:
+  skill-mine) from its active root to the archive; rejects hand-authored
+  skills. `restore` moves an archived skill back to its original scope root,
+  only when the destination is free. `recover` handles crashed/interrupted
+  operations by examining the journal: if the rename happened → complete; if
+  not → roll back; malformed journal → remove.
+- Lock = in-progress journal entry at `journal/<name>.json`. Same-filesystem
+  `renameSync` for atomicity. Journal cleared on completion.
+- `cli.ts` updated: `retire`, `restore`, `recover` subcommands.
+- `command/skill-mine.md` updated: retire/restore/recover documentation +
+  restart note (loader is startup-scanned).
+- 14 tests (RED: stubs → 14 fail; GREEN: 14 pass): retire project/template,
+  reject non-mined, reject missing, restore project/template, restore
+  collision, retire→restore idempotency (twice), stale lock, recover
+  complete/rollback/malformed/noop.
+
+### Task 4.2 — Catalog and scope governance
+
+- `budget.ts` (new): `scanMinedSkills` walks project + template roots, returns
+  only skills with metadata.origin: skill-mine (scope must match root).
+  `checkBudget` enforces global count + per-description + aggregate
+  description-byte budgets. `checkTemplatePromotionEvidence` requires ≥2
+  distinct projects + ≥2 distinct modelIds for template-scope promotion.
+- `cli.ts` updated: `budget` subcommand (prints JSON, exits 1 if over budget).
+- 12 tests (RED: stubs → 12 fail; GREEN: 12 pass): scan empty/project/template/
+  hand-authored, budget pass/count-exceed/per-desc-exceed/aggregate-exceed,
+  evidence pass/1-project/1-model/empty.
+
+### Verification (Plan 4, all exit 0)
+
+- `bun test ./.opencode/tool/skill-mine/` → 98 pass, 0 fail (195 expect calls)
+- `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` → exit 0
+- `bash .opencode/tool/structural-check.sh` → exit 0
+- `npm_config_offline=true bash .opencode/tool/verify.sh` → exit 0 (5/5 PASS)
+- `bash .opencode/tool/sync-template.sh` → 618 files; project-skills +
+  .skill-mine absent, budget.ts + lifecycle.ts + tool/skill-mine/ ship
+- `git diff --check` → exit 0
+
+**Status:** Plan 4 complete + shipped. Plans 5–7 pending.

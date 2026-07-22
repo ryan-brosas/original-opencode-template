@@ -6,6 +6,9 @@
 //   bun .opencode/tool/skill-mine/cli.ts capture <sha>   # sanitized capture of a finalized receipt
 //   bun .opencode/tool/skill-mine/cli.ts distill <name>  # reads SKILL.md from stdin, writes candidate to quarantine
 //   bun .opencode/tool/skill-mine/cli.ts evaluate <name> # reads ApprovalInput JSON from stdin, records behavioral approval
+//   bun .opencode/tool/skill-mine/cli.ts retire <name>   # move a mined skill from its active root to the archive
+//   bun .opencode/tool/skill-mine/cli.ts restore <name> # move an archived skill back to its original scope root
+//   bun .opencode/tool/skill-mine/cli.ts recover <name> # recover/rollback a crashed retire or restore
 //
 // Receipts are local (ignored runtime tree). The build agent calls `prepare`
 // after verify + staging and `finalize` after a successful push.
@@ -16,6 +19,8 @@ import { prepareReceipt, finalizeReceipt } from "./receipts.js";
 import { capture } from "./capture.js";
 import { writeCandidate } from "./candidate.js";
 import { recordApproval } from "./evaluate.js";
+import { retire, restore, recover } from "./lifecycle.js";
+import { checkBudget } from "./budget.js";
 import type { ProvisionalInput } from "./types.js";
 import type { ApprovalInput } from "./evaluate.js";
 
@@ -80,6 +85,41 @@ async function main(): Promise<number> {
       const record = recordApproval(input, cfg);
       console.log(approvalPathPrint(cfg, name));
       return 0;
+    }
+    case "retire": {
+      const name = rest[0];
+      if (!name) {
+        console.error("usage: cli.ts retire <skillName>");
+        return 2;
+      }
+      await retire(name, cfg);
+      console.log(`retired: ${name}`);
+      return 0;
+    }
+    case "restore": {
+      const name = rest[0];
+      if (!name) {
+        console.error("usage: cli.ts restore <skillName>");
+        return 2;
+      }
+      await restore(name, cfg);
+      console.log(`restored: ${name}`);
+      return 0;
+    }
+    case "recover": {
+      const name = rest[0];
+      if (!name) {
+        console.error("usage: cli.ts recover <skillName>");
+        return 2;
+      }
+      await recover(name, cfg);
+      console.log(`recovered: ${name}`);
+      return 0;
+    }
+    case "budget": {
+      const check = checkBudget(cfg);
+      console.log(JSON.stringify(check, null, 2));
+      return check.ok ? 0 : 1;
     }
     default: {
       console.error(`unknown subcommand: ${subcommand}`);
