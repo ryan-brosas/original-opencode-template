@@ -28,7 +28,8 @@ updated: 2026-07-22
 | 2026-07-22 | Plan 4 Tasks 1-2 on disk | Narrowed `plan.md` bash to deny-first; added `task:false`+`apply_patch:false`+deny-first bash to general/explore/review/scout; general→read-only; `task:false` confirmed via debug; needs restart for full verification |
 | 2026-07-22 | Plan 4 complete + committed | After restart, verified all 4 specialists read-only via `opencode debug agent` (last-match-wins); found+fixed write-bypass gap (explore/review write:deny); committed `0a1a4f9`, pushed to GitHub |
 | 2026-07-22 | Deferred items resolved | (1) wired `instructions:["AGENTS.md"]` (root map was NOT auto-injected); (2) `tool/sync-template.sh` export mechanism + reconciled `template/.opencode` (594 files, manifest regenerated); (3) README dead refs + stale `npm run` Verification Baseline fixed; (4) `plugin/sdk/` audit: no shared contract → deferred; verify.sh green, diff clean |
-| 2026-07-22 | Auto-ship wired | `build.md` commits+pushes after verify.sh exits 0 on a completed work unit; `git commit`/`push` flipped ask→allow, `--force`+`--no-verify` denied; `/ship` Close rewritten to reference the standing rule. 3 files staged, **commit pending** (old session still had ask → blocked; needs restart for allow to take effect) |
+| 2026-07-22 | Auto-ship wired | `build.md` commits+pushes after verify.sh exits 0 on a completed work unit; `git commit`/`push` flipped ask→allow, force-push + hook-bypass denied; `/ship` Close rewritten to reference the standing rule |
+| 2026-07-22 | Auto-ship landed | After restart, build agent loaded allow; committed `df05bc5` (4 files), pushed `f63f03d..df05bc5 main -> main`. Auto-ship is LIVE. Gotcha learned: commit message body must not contain the literal `--no-verify` or it trips the `*--no-verify*` deny rule |
 
 ## Active Decisions
 
@@ -79,9 +80,9 @@ updated: 2026-07-22
 
 ## Session Handoff
 
-**Last Session:** 2026-07-22 (auto-ship wired; 3 files staged, commit pending)
-**Next Session Priority:** On restart, the build agent loads `git commit/push: allow`. **Land the staged commit** (`git status` shows 3 staged files: `agent/build.md`, `command/ship.md`, `artifacts/MEMORY.md`) — commit with message `feat(harness): auto commit + push after verify on completion` and push to `origin`. Then auto-ship is live for all future completed+verified artifacts.
-**Known Issues:** (none — deferred items resolved)
+**Last Session:** 2026-07-22 (auto-ship landed: `df05bc5` committed + pushed; auto-ship is LIVE)
+**Next Session Priority:** Auto-ship is live — every completed + verify.sh-green work unit commits + pushes with no prompt. Verify `instructions:["AGENTS.md"]` injection in a fresh session (root AGENTS.md project map should appear alongside `.opencode/AGENTS.md` kernel). Reconcile `template/` with `bash .opencode/tool/sync-template.sh` if desired.
+**Known Issues:** (none — deferred items resolved; auto-ship live)
 **Context Links:** `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/template-harness-v2/{spec,plan,progress,research}.md`, `.opencode/artifacts/MEMORY.md`
 **Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main)
 
