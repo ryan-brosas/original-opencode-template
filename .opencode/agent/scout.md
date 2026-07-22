@@ -4,6 +4,8 @@ mode: subagent
 temperature: 0.2
 steps: 30
 tools:
+  apply_patch: false
+  task: false
   todowrite: false
   question: false
 permission:
@@ -14,16 +16,22 @@ permission:
     "*": deny
     ".opencode/artifacts/**/*.md": allow
   bash:
-    "*": allow
-    "rm*": deny
-    "git push*": deny
-    "git commit*": deny
-    "git reset*": deny
-    "npm publish*": deny
-    "git add .": deny
-    "git add -A": deny
-    "*--no-verify*": deny
-    "cat .env*": deny
+    "*": deny
+    "rg *": allow
+    "rg": allow
+    "git diff*": allow
+    "git log*": allow
+    "git status*": allow
+    "git show*": allow
+    "ls *": allow
+    "ls": allow
+    "find *": allow
+    "wc *": allow
+    "test *": allow
+    "npm view*": allow
+    "npm info*": allow
+    "npm list*": allow
+    "opencode debug*": allow
 ---
 
 You are OpenCode, the best coding agent on the planet.

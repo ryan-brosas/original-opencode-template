@@ -7,8 +7,8 @@ updated: 2026-07-22
 
 ## Current Position
 
-**Active Plan:** Plan 2 — Prompt fidelity and lean context (Plan 1 complete)
-**Status:** Ready to start Plan 2
+**Active Plan:** Plan 4 — Least-privilege agent permissions (Plans 1-3 complete)
+**Status:** Ready to start Plan 4
 **Started:** 2026-07-22
 **Phase:** Template Harness v2
 
@@ -21,6 +21,11 @@ updated: 2026-07-22
 | 2026-07-22 | Model config tuning | `small_model` → gpt-5.4-mini; all `gpt-5.6-sol` → `gpt-5.6-sol-fast` |
 | 2026-07-22 | Plan persisted | `.opencode/artifacts/template-harness-v2/plan.md` + roadmap/state/MEMORY updated |
 | 2026-07-22 | Plan 1 shipped | `verify.sh` (deterministic offline runner), `structural-check.sh` PASS-after-FAIL fix, `verify.md` read-only adapter, `ship.md` linear single-writer (502→142 lines); verify.sh green (exit 0) |
+| 2026-07-22 | Plan 2 shipped | Removed `prompt-leverage.ts` + `session-summary.ts` + 4 helpers; updated plugin/README.md, README.md, AGENTS.md; verify.sh green |
+| 2026-07-22 | Pushed to GitHub | Public repo `ryan-brosas/original-opencode-template`; commit `0b429a7` (24 files, +1091/-1639); `template/` excluded (Model A) |
+| 2026-07-22 | Restart + continuity check | opencode restarted; prompt-leverage/session-summary no longer loaded (verified: prompts arrive unwrapped); state.md updated as continuity mechanism |
+| 2026-07-22 | Plan 3 shipped | Rewrote `fix.md` (verify.sh loop, no guessed npm), aligned `build.md` (sole writer, finalized permissions), marked batch-implement + dev-lifecycle DORMANT; verify.sh green |
+| 2026-07-22 | Plan 4 Tasks 1-2 on disk | Narrowed `plan.md` bash to deny-first; added `task:false`+`apply_patch:false`+deny-first bash to general/explore/review/scout; general→read-only; `task:false` confirmed via debug; needs restart for full verification |
 
 ## Active Decisions
 
@@ -42,8 +47,8 @@ updated: 2026-07-22
 ### Technical
 
 - `structural-check.sh` **exits 1 on failure** — docs claiming "exits 0" are stale and wrong. Real bug: unconditional `pass "All files within size limits"` at line 92 printed after a recorded size violation.
-- `prompt-leverage.ts` removed (Plan 2) — previously rewrote every substantive user prompt. No longer active on disk; takes effect after opencode restart.
-- `session-summary.ts` + helpers removed (Plan 2) — previously injected `<session_summary>` every turn. Takes effect after restart.
+- `prompt-leverage.ts` removed (Plan 2) — confirmed gone after restart: prompts arrive unwrapped (no Objective/Context/Work Style framework).
+- `session-summary.ts` + helpers removed (Plan 2) — confirmed gone after restart: no `<session_summary>` block in context. Continuity now relies on file-based memory (this file + MEMORY.md + progress.md), not every-turn injection.
 - No typecheck/test suite: `typescript` not a dep; `npx tsc` is a stub. Bun compile smoke (Plan 1) is not semantic typecheck.
 - `opencode.json instructions[]` empty → root AGENTS.md not auto-injected.
 
@@ -54,16 +59,23 @@ updated: 2026-07-22
 
 ## Next Actions
 
-1. [ ] Plan 2 Task 1: remove 5 session-summary files (`session-summary.ts` + `session-summary/{persist,serialize,tracking,types}.ts`)
-2. [ ] Plan 2 Task 2: remove `prompt-leverage.ts`; update `plugin/README.md` + `README.md`
-3. [ ] Plan 2 Task 3: restart + forced-compaction continuity test (preserves intent/paths/next step)
+1. [x] Plan 2 Task 1: remove session-summary files — done
+2. [x] Plan 2 Task 2: remove prompt-leverage.ts + update docs — done
+3. [x] Plan 2 Task 3: restart + continuity check — done (file-based state complete; plugins confirmed unloaded)
+4. [x] Plan 3 Task 1: rewrite `fix.md` + align `build.md` (finalize build permissions) — done
+5. [x] Plan 3 Task 2: mark swarm routing dormant — done
+6. [x] Plan 3 Task 3: smoke-test `/ship` without `.active` — done (ship.md:25 disowns requirement)
+7. [x] Plan 4 Task 1: narrow `plan.md` bash to deny-first read-only — done on disk
+8. [x] Plan 4 Task 2: deny-first shell + task:false + apply_patch:false for general/explore/review/scout — done on disk
+9. [ ] Plan 4 Task 3: restart opencode, then inspect resolved permissions for every agent (NEEDS RESTART)
 
 ## Session Handoff
 
-**Last Session:** 2026-07-22 (research → model tuning → plan persistence)
-**Next Session Priority:** Execute Plan 1 (verifier + ship loop)
-**Known Issues:** ship.md 502 lines; no verification harness; prompt-leverage/session-summary active
-**Context Links:** `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/template-harness-v2/plan.md`, `.opencode/artifacts/MEMORY.md`
+**Last Session:** 2026-07-22 (Plans 1-2 shipped, pushed to GitHub, restarted)
+**Next Session Priority:** Plan 3 — align `/fix` + build, disable swarm routing
+**Known Issues:** README.md has dead command refs (/start /status /resume) + stale `npm run typecheck` baseline — noticed, separate cleanup
+**Context Links:** `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/template-harness-v2/{spec,plan,progress,research}.md`, `.opencode/artifacts/MEMORY.md`
+**Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main, `0b429a7`)
 
 ---
 

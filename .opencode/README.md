@@ -88,8 +88,8 @@ Workflows live in `.opencode/workflows/` and define reusable multi-agent orchest
 **Built-in workflows:**
 - `deep-research` — Fan out 8 search agents, cross-check findings, synthesize a cited report
 - `audit-pattern` — Discover code pattern occurrences, audit each, produce remediation report
-- `batch-implement` — Parallel task implementation with review and merge phases
-- `development-lifecycle-workflow` — Full feature dev lifecycle with parallelism
+- `batch-implement` — **DORMANT** (parallel writers; `/ship` is linear single-writer now)
+- `development-lifecycle-workflow` — **DORMANT** (composes batch-implement)
 - `garbage-collection` — Fallow analysis → quality grading → cleanup PRs
 
 **Usage:**

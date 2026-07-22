@@ -1,5 +1,9 @@
 # batch-implement
 
+> **DORMANT** — This parallel-writer workflow is not routed to by any command.
+> `/ship` uses a linear single-writer loop (`localize → patch → verify → evidence`).
+> Kept for reference; do not invoke unless parallel writer fan-out is explicitly requested.
+
 Take a plan with independent tasks and dispatch one subagent per task in parallel. Each task result is reviewed, then merged. Use for multi-file feature implementation where tasks don't share file dependencies.
 
 ## Args

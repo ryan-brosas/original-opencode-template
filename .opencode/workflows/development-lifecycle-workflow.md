@@ -1,5 +1,7 @@
 # development-lifecycle-workflow
 
+> **DORMANT** — This workflow composes with `batch-implement` (parallel writers), which is no longer routed to. `/ship` uses a linear single-writer loop. Kept for reference; do not invoke unless parallel execution is explicitly requested.
+
 Multi-agent workflow that chains the development lifecycle phases with parallelism. Uses specialized agents (scouts, reviewers, planners) and composes with the batch-implement workflow for parallel implementation.
 
 ## Args

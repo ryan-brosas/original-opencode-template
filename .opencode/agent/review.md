@@ -6,19 +6,32 @@ steps: 40
 tools:
   edit: false
   write: false
+  apply_patch: false
+  task: false
   todowrite: false
   question: false
 permission:
+  write:
+    "*": deny
   bash:
-    "*": allow
-    "rm*": deny
-    "git push*": deny
-    "git commit*": deny
-    "git reset*": deny
-    "git add .": deny
-    "git add -A": deny
-    "*--no-verify*": deny
-    "cat .env*": deny
+    "*": deny
+    "rg *": allow
+    "rg": allow
+    "git diff*": allow
+    "git log*": allow
+    "git status*": allow
+    "git show*": allow
+    "git branch*": allow
+    "ls *": allow
+    "ls": allow
+    "find *": allow
+    "wc *": allow
+    "test *": allow
+    "file *": allow
+    "npm view*": allow
+    "npm info*": allow
+    "npm list*": allow
+    "opencode debug*": allow
 ---
 
 You are opencode, an interactive CLI tool that helps users with software engineering tasks.

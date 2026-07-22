@@ -6,7 +6,8 @@ agent: build
 
 # Fix: $ARGUMENTS
 
-Systematically debug and fix the reported issue.
+Systematically debug and fix the reported issue using the same loop as `/ship`:
+**reproduce → localize → patch → verify → evidence**. You are the sole writer.
 
 ## Load Skills
 
@@ -15,41 +16,64 @@ skill({ name: "root-cause-tracing" });
 skill({ name: "verification-before-completion" });
 ```
 
-## Process
+## The Loop
 
-### Phase 1: Reproduce
+### 1. Reproduce
+
+Reproduce the issue with the exact steps or command that triggered it. If you
+can't reproduce it, say so — a fix without a reproduction is a guess.
+
+### 2. Localize
+
+- Search for the error message or symptom: `rg -n` / `grep`.
+- Trace the execution path to the root cause — read 2–4 most-relevant files fresh.
+- Distinguish symptom from root cause. State the root cause in one sentence with
+  `file:line`. If it's a mapping problem, surface it before patching.
+
+### 3. Patch
+
+Apply the minimal fix for the root cause. Prefer making the bad state impossible
+over handling all bad states. Do not add speculative guards, tolerant readers, or
+defensive copies. Surgical diffs only — every line traces to the fix.
+
+### 4. Verify
+
+Run the base gate, then the task-specific check.
+
+**Base gate (always):**
 
 ```bash
-# Reproduce the issue with the exact steps or command
+bash .opencode/tool/verify.sh
 ```
 
-### Phase 2: Isolate
+**Task-specific check:** run the command that proves the bug is gone — the
+project's test/lint/typecheck, a `bun <file>` smoke, or the exact reproduction
+steps. Do not invent `npm run` commands that don't exist. If the project has no
+test suite, run the closest useful check and name the gap.
 
-- Search for the error message or symptom in the codebase
-- Trace the execution path to find the root cause
-- Read the 2-4 most relevant files
-- Distinguish symptom from root cause
+If verification fails twice on the same approach, stop. Preserve evidence, report
+the blocker. Do not endlessly retry.
 
-### Phase 3: Fix
+### 5. Evidence
 
-- Apply the minimal fix for the root cause
-- Do not add speculative guards, tolerant readers, or defensive copies
-- Prefer making the bad state impossible over handling all bad states
-
-### Phase 4: Verify
-
-```bash
-npm run typecheck
-npm run lint
-npm test            # or vitest relevant test
+```text
+## Fixed: <one-line summary>
+Root cause: path/to/file.ts:42 — <what was wrong>
+Fix: <what changed>
+Commands: `bash .opencode/tool/verify.sh` (exit 0), <task-specific check> (exit 0)
+Result: PASS — bug no longer reproduces
 ```
-
-If verification fails twice on the same approach, escalate with learnings.
 
 ## Output
 
-Report:
-1. Root cause (with file:line)
-2. Fix applied
-3. Verification results
-4. What else was considered and rejected
+1. **Root cause** (with `file:line`)
+2. **Fix applied** (what changed, why)
+3. **Verification results** (command + exit code)
+4. **What else was considered and rejected**
+
+## Related Commands
+
+| Need | Command |
+| ---- | ------- |
+| Run only verification | `/verify` |
+| Ship a feature | `/ship` |

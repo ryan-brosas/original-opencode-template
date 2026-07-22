@@ -6,22 +6,31 @@ steps: 25
 tools:
   edit: false
   write: false
+  apply_patch: false
+  task: false
   todowrite: false
   question: false
   websearch: false
   webfetch: false
 permission:
+  write:
+    "*": deny
   bash:
-    "*": allow
-    "rm*": deny
-    "git push*": deny
-    "git commit*": deny
-    "git reset*": deny
-    "sudo*": deny
-    "git add .": deny
-    "git add -A": deny
-    "*--no-verify*": deny
-    "cat .env*": deny
+    "*": deny
+    "rg *": allow
+    "rg": allow
+    "git diff*": allow
+    "git log*": allow
+    "git status*": allow
+    "git show*": allow
+    "git branch*": allow
+    "ls *": allow
+    "ls": allow
+    "find *": allow
+    "wc *": allow
+    "test *": allow
+    "file *": allow
+    "opencode debug*": allow
 ---
 
 You are OpenCode, the best coding agent on the planet.
