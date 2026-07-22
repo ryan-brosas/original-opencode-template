@@ -1,0 +1,196 @@
+{
+  "slug": "skill-mine",
+  "title": "Skill-Mine — Self-Extending Governed Skill Library",
+  "created": "2026-07-22",
+  "status": "planned",
+  "authoritative_plan": "plan.md",
+  "note": "PRD body superseded by the 12 Required PRD Corrections in plan.md where the two conflict.",
+  "goal": "A manual, gated, phased system where the harness mines its own successful runs into executable OpenCode skills — quarantined candidates, behavioral validation, atomic promotion, catalog budget, manual retirement. No vector DB, no training, no autonomous trigger (deferred).",
+  "depends_on": [],
+  "parallel": false,
+  "research_basis": "arXiv 2026 (3 parallel scout scans: self-improving agents, skill acquisition, long-horizon memory) + read-only review audit (5 blockers, 4 medium risks). Key papers: 2607.13091, 2607.08010, 2605.18284, 2607.14159, 2605.22148, 2607.09711, 2607.12790, 2607.13683.",
+  "success_criteria": [
+    {
+      "id": "sc1",
+      "check": "Sanitized capture: /skill-mine <sha> produces a trace with changed-paths + verify-commands + exit-codes and NO raw user messages, NO tool output, NO secret-shaped strings",
+      "verify": "bash .opencode/tool/verify.sh exit 0; rg -n 'password|secret|token|apiKey|credential' .opencode/.skill-mine/traces/*.json → no matches; trace JSON has changed_paths, verify_commands, exit_codes, status keys"
+    },
+    {
+      "id": "sc2",
+      "check": "Validate gate rejects invalid candidates with a specific reason; accepts known-good skills",
+      "verify": "bash .opencode/tool/skill-mine-validate .opencode/.skill-mine/candidates/broken/ → exit 1; bash .opencode/tool/skill-mine-validate .opencode/skill/memory/ → exit 0"
+    },
+    {
+      "id": "sc3",
+      "check": "Candidates quarantined outside .opencode/skill/ (not advertised to model before promotion)",
+      "verify": "test ! -e .opencode/skill/<candidate-name>; opencode debug skill --pure 2>/dev/null | rg <candidate-name> → no match (restart-gated)"
+    },
+    {
+      "id": "sc4",
+      "check": "Atomic gated promotion: promote without validate → rejected; after validate passes → skill loads",
+      "verify": "promote broken candidate → exit 1, candidate intact; promote validated candidate → exit 0, .opencode/skill/<name>/SKILL.md exists, candidate dir empty, bash .opencode/tool/verify.sh exit 0"
+    },
+    {
+      "id": "sc5",
+      "check": "Catalog budget enforced: surfaced mined skills ≤ cap (default 10); exceeding → promotion rejected",
+      "verify": "rg -n 'mined' .opencode/skill/*/SKILL.md | wc -l ≤ cap; promote beyond cap → exit 1 with budget message"
+    },
+    {
+      "id": "sc6",
+      "check": "Raw traces never committed: .opencode/.skill-mine/ gitignored",
+      "verify": "git check-ignore .opencode/.skill-mine/traces/test → prints path (ignored); git status --porcelain .opencode/.skill-mine/ → clean"
+    },
+    {
+      "id": "sc7",
+      "check": "Sanitized provenance in promoted skills: metadata has source_commit, mined_date, judge_version, scope, evidence_summary; no raw transcript body",
+      "verify": "rg -n 'source_commit|mined_date|judge_version|scope' .opencode/skill/<mined>/SKILL.md → matches; no <session/<user/raw tool-output blocks in body"
+    },
+    {
+      "id": "sc8",
+      "check": "verify.sh green throughout all phases",
+      "verify": "bash .opencode/tool/verify.sh → exit 0"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1.1",
+      "category": "foundation",
+      "title": "Create quarantine structure + gitignore + sync exclusion",
+      "end_state": ".opencode/.skill-mine/{traces,candidates,archive}/ + state.json (catalog budget 10, judge v1, scope project) + candidates/.gitkeep exist; .skill-mine/ gitignored + sync-excluded",
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".opencode/.skill-mine/state.json",
+        ".opencode/.skill-mine/candidates/.gitkeep",
+        ".opencode/.gitignore",
+        ".opencode/tool/sync-template.sh"
+      ],
+      "verify": "git check-ignore .opencode/.skill-mine/traces/test → ignored; bash .opencode/tool/sync-template.sh && test ! -e template/.opencode/.skill-mine → exit 0; bash .opencode/tool/verify.sh → exit 0"
+    },
+    {
+      "id": "t1.2",
+      "category": "foundation",
+      "title": "Create skill-mine-validate gate",
+      "end_state": "skill-mine-validate tool checks frontmatter schema, uniqueness, provenance, helper syntax, behavioral RED/GREEN/REFACTOR; exits 1 on failure with reason, 0 on pass",
+      "depends_on": ["t1.1"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/tool/skill-mine-validate"],
+      "verify": "bash .opencode/tool/skill-mine-validate .opencode/skill/memory/ → exit 0; bash .opencode/tool/skill-mine-validate .opencode/.skill-mine/candidates/broken/ → exit 1 with reason; bash .opencode/tool/verify.sh → exit 0"
+    },
+    {
+      "id": "t2.1",
+      "category": "mining",
+      "title": "Create /skill-mine command (capture)",
+      "end_state": "/skill-mine capture <sha|range> produces sanitized JSON trace in .skill-mine/traces/ with 7 keys, secret-scanned, no raw user messages/tool output/diffs",
+      "depends_on": ["t1.1"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/command/skill-mine.md"],
+      "verify": "/skill-mine capture <recent-sha> → trace exists; rg -n 'password|secret|token|apiKey|credential' .opencode/.skill-mine/traces/*.json → no matches; trace has 7 keys; bash .opencode/tool/verify.sh → exit 0"
+    },
+    {
+      "id": "t2.2",
+      "category": "mining",
+      "title": "Create /skill-mine distill (candidate generation)",
+      "end_state": "/skill-mine distill <trace> produces a candidate in .skill-mine/candidates/<name>/SKILL.md + helpers with provenance metadata; NOT loaded by OpenCode (quarantine)",
+      "depends_on": ["t2.1"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/command/skill-mine.md"],
+      "verify": "/skill-mine distill <trace> → candidate exists with valid frontmatter + provenance; test ! -e .opencode/skill/<candidate-name>; bash .opencode/tool/skill-mine-validate candidates/<name>/ → passes deterministic checks; bash .opencode/tool/verify.sh → exit 0"
+    },
+    {
+      "id": "t3.1",
+      "category": "promotion",
+      "title": "Create /skill-mine promote (atomic gated move)",
+      "end_state": "/skill-mine promote <candidate> runs validate (full incl behavioral); if pass: atomic move candidates/ → .opencode/skill/<name>/, commit sanitized provenance, update catalog count; if fail: reject with reason; if budget exceeded: reject",
+      "depends_on": ["t1.2", "t2.2"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/command/skill-mine.md", ".opencode/.skill-mine/state.json"],
+      "verify": "promote broken candidate → exit 1, candidate intact; promote validated candidate → exit 0, test -e .opencode/skill/<name>/SKILL.md, test ! -e .opencode/.skill-mine/candidates/<name>/; rg provenance keys in SKILL.md → matches; bash .opencode/tool/verify.sh → exit 0"
+    },
+    {
+      "id": "t3.2",
+      "category": "promotion",
+      "title": "Reuse telemetry",
+      "end_state": "skill invocations logged to .skill-mine/usage.jsonl (gitignored); /skill-mine usage reports per-skill invocation count + last-used date",
+      "depends_on": ["t3.1"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/command/skill-mine.md", ".opencode/.skill-mine/usage.jsonl"],
+      "verify": "invoke promoted skill → test -s .opencode/.skill-mine/usage.jsonl; /skill-mine usage → shows skill count ≥1; git check-ignore .opencode/.skill-mine/usage.jsonl → ignored; bash .opencode/tool/verify.sh → exit 0"
+    },
+    {
+      "id": "t4.1",
+      "category": "governance",
+      "title": "Create /skill-mine gc (manual retirement)",
+      "end_state": "/skill-mine gc re-validates promoted mined skills + checks reuse; fails re-validation OR no reuse → move to .skill-mine/archive/, commit deletion; manual, on-demand",
+      "depends_on": ["t3.2"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/command/skill-mine.md"],
+      "verify": "/skill-mine gc with stale skill → test ! -e .opencode/skill/<stale-name>, test -e .opencode/.skill-mine/archive/<stale-name>/SKILL.md; bash .opencode/tool/verify.sh → exit 0"
+    },
+    {
+      "id": "t4.2",
+      "category": "governance",
+      "title": "Document deferred automation (no code)",
+      "end_state": "skill-mine.md + MEMORY.md document: autonomous capture deferred (no reliable completion marker); trigger for automation = completion marker emerges AND ≥3 promoted skills with reuse",
+      "depends_on": ["t4.1"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/command/skill-mine.md", ".opencode/artifacts/MEMORY.md"],
+      "verify": "rg -n 'deferred|assisted|autonomous' .opencode/command/skill-mine.md → matches deferral note; bash .opencode/tool/verify.sh → exit 0"
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "oq1",
+      "question": "Is skill-mine-validate a shell script or a bun .ts file?",
+      "status": "open",
+      "resolution": "Decide at /plan based on gate complexity. Shell is simpler (no compile gate); bun .ts gets verify.sh typecheck coverage."
+    },
+    {
+      "id": "oq2",
+      "question": "Does the behavioral gate fully automate or prompt the build agent?",
+      "status": "resolved",
+      "resolution": "Prompt the build agent — writing-skills contract is a manual pressure test; full automation needs a judge model + held-out scenarios (out of scope for personal use)."
+    },
+    {
+      "id": "oq3",
+      "question": "Should mined skills be versioned (v1, v2) when re-distilled?",
+      "status": "open",
+      "resolution": "Defer — git history IS versioning; re-distill produces a new candidate, promote replaces + archives the old. Decide at /plan."
+    },
+    {
+      "id": "oq4",
+      "question": "Should the catalog budget be per-agent (different caps for build vs plan)?",
+      "status": "open",
+      "resolution": "Default a global cap (10); per-agent is a future refinement. Decide at /plan."
+    },
+    {
+      "id": "oq5",
+      "question": "Does /skill-mine need a plugin for usage telemetry, or can the command log it?",
+      "status": "resolved",
+      "resolution": "The command logs it — skill invocations are visible in the session log. No plugin needed (keeps sole-writer invariant)."
+    }
+  ],
+  "stop_conditions": [
+    "skill-mine-validate cannot reliably check behavioral value (RED/GREEN/REFACTOR too expensive or unreliable) → stop, surface to user; may need a judge model or human-in-the-loop",
+    "Catalog budget too restrictive (10 too low for real use) → widen with evidence",
+    "Distilled skills consistently fail validation (low distillation quality) → stop, investigate the distill prompt or the trace quality; do not lower the gate",
+    "Secret leakage detected in a committed promoted skill → stop, audit all promoted skills, add a stronger secret-scan gate"
+  ],
+  "non_goals": [
+    "Autonomous capture triggers (no reliable post-ship hook; deferred to Phase 4)",
+    "Vector/embedding retrieval (local files + description-based surfacing sufficient)",
+    "Training/fine-tuning (loop works without weight updates)",
+    "skills.urls remote publishing (overkill for personal use)",
+    "Plugin-based skill writes (build agent is sole writer)",
+    "Automated retirement (manual /skill-mine gc from day 1; automation deferred)",
+    "Strictness migration, plugin/sdk/ (existing deferred items, unchanged)"
+  ]
+}

@@ -7,10 +7,10 @@ updated: 2026-07-22
 
 ## Current Position
 
-**Active Plan:** Complete — semantic-typecheck shipped
-**Status:** 5-check verifier live (typecheck = Check 4/5); all green; pushed
+**Active Plan:** skill-mine — plan ready (awaiting `/ship`)
+**Status:** `/plan` complete; spec/prd reconciled with 12 corrections; plan.md written; no implementation yet
 **Started:** 2026-07-22
-**Phase:** semantic-typecheck — DONE
+**Phase:** skill-mine — Plan written, ready to ship
 
 ## Recent Completed Work
 
@@ -33,6 +33,8 @@ updated: 2026-07-22
 | 2026-07-22 | `/plan semantic-typecheck` | Plan written (448 lines, 4 plans/8 tasks); spec/prd reconciled with review-audit corrections (Check 4/5, nested gitignore trim, plugin/tsconfig, isolated regression test, generic export, finalization); pins `typescript@7.0.2`+`@types/bun@1.3.14`+`@types/node@24.12.2`; awaiting `/ship` |
 | 2026-07-22 | semantic-typecheck shipped | 5-check `verify.sh` (typecheck = Check 4/5, nested pinned `tsc`, consumer SKIP); `typescript@7.0.2`+`@types/bun@1.3.14`+`@types/node@24.12.2` tracked; 3 baseline errors fixed (`guard.ts:20` narrowing, removed `bun.d.ts` shim); `verify-typecheck-test.sh` isolated regression test; `sync-template.sh` generic artifact allowlist; docs updated; verify.sh green |
 | 2026-07-22 | Template ships typecheck deps | Consumer-clean reversed: `sync-template.sh` ships `package.json`/`package-lock.json`; consumers run `npm ci --prefix .opencode` for 5/5; template verify = 5/5 PASS (was 4+SKIP); SKIP path kept as fresh-checkout fallback |
+| 2026-07-22 | `/create skill-mine` | Full PRD (358 lines) + prd.json (194 lines): self-extending governed skill library; 6-stage lifecycle, ignored quarantine, phased delivery, 8 success criteria; deep research (3 explore + 1 scout + 1 review) |
+| 2026-07-22 | `/plan skill-mine` | Plan written (7 serial child plans, 16 TDD tasks, 15 artifacts); spec/prd reconciled with 12 Required PRD Corrections (review audit P1 contradictions); Discovery Level 3; awaiting `/ship` |
 
 ## Active Decisions
 
@@ -45,6 +47,7 @@ updated: 2026-07-22
 | 2026-07-22 | Auto ship on completion: commit + push after verify | User wants per-artifact auto commit+push; verify.sh is the gate; subagents stay read-only; force-push + hook-bypass denied |
 | 2026-07-22 | Semantic typecheck gate = verify.sh Check 4/5 | Exact-pinned devDeps tracked; nested pinned `tsc` (offline); consumer SKIP; isolated regression test; strictness migration non-goal |
 | 2026-07-22 | Template ships typecheck deps (consumer-clean reversed) | Template should run 5/5 like dev; SKIP path kept as fresh-checkout fallback; consumers carry pinned lockfile |
+| 2026-07-22 | skill-mine corrected full lifecycle | Tracked config + finalized receipts; deterministic lint split from hash-bound behavioral approval; retire/restore before promotion; separate project/template skill roots; `/ship` owns Git release; telemetry is live-hook spike with manual fallback |
 
 ## Blockers
 
@@ -84,13 +87,15 @@ updated: 2026-07-22
 13. [x] Deferred item 4: `plugin/sdk/` audit — no shared contract found, remains deferred (not speculative)
 14. [x] `/plan semantic-typecheck` — plan written + spec/prd reconciled; awaiting `/ship`
 15. [x] `/ship semantic-typecheck` — 5-check verifier live, typecheck Check 4/5, 3 baseline errors fixed, regression test, generic export, docs updated, committed + pushed
+16. [x] `/create skill-mine` — Full PRD + prd.json; self-extending governed skill library; 6-stage lifecycle
+17. [x] `/plan skill-mine` — 7-plan/16-task TDD plan; spec/prd reconciled with 12 corrections; awaiting `/ship`
 
 ## Session Handoff
 
-**Last Session:** 2026-07-22 (`/ship semantic-typecheck` complete: 5-check verifier live, typecheck = Check 4/5, committed + pushed)
-**Next Session Priority:** Roadmap fully complete (template-harness-v2 + all deferred items + semantic-typecheck). Optional follow-ups: verify `instructions:["AGENTS.md"]` injection in a fresh session; reconcile `template/` with `bash .opencode/tool/sync-template.sh`; strictness migration (strict:false→true) if desired; `plugin/sdk/` when two plugins share a contract.
-**Known Issues:** (none — semantic-typecheck shipped green)
-**Context Links:** `.opencode/artifacts/semantic-typecheck/{spec,plan,progress,prd.json}`, `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/MEMORY.md`
+**Last Session:** 2026-07-22 (`/plan skill-mine` complete: 7-plan/16-task TDD plan written, spec/prd reconciled with 12 corrections, progress.md + state.md updated)
+**Next Session Priority:** `/ship skill-mine` — execute the 7-plan TDD sequence. First write-enabled action: apply the 12 Required PRD Corrections (spec/prd already reconciled at the status/pointer level), then Plan 1 Task 1 (tracked `.opencode/skill-mine.json` + lazy runtime + RED config test). Treat each child plan as one work unit per Ship-on-Completion after `verify.sh` is green. Stop if a synthetic credential passes any gate, or if the native skill hook is unobservable (use manual telemetry fallback).
+**Known Issues:** (none — plan ready; spec/prd reconciled)
+**Context Links:** `.opencode/artifacts/skill-mine/{spec,plan,progress,prd.json}`, `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/MEMORY.md`
 **Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main)
 
 ---
