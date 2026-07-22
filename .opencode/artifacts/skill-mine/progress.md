@@ -165,3 +165,54 @@ Documented limitations / deferred:
   `capture` (printed trace path, file on disk) — end-to-end via the real binary
 
 **Status:** Plan 2 complete + shipped. Plans 3–7 pending.
+
+## 2026-07-22 — Plan 3 shipped (`/ship skill-mine` Plan 3)
+
+Plan 3: Candidate Admission and Behavioral Approval. Both tasks TDD (RED → GREEN).
+
+### Task 3.1 — Quarantine and isolated loader validation
+
+- `loader.ts` (69 lines): `runOpencodeDebugSkill(cwd)` spawns `opencode debug skill
+  --pure` with `OPENCODE_DISABLE_EXTERNAL_SKILLS=1` + `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1`,
+  redirects stdout to a temp file (spawnSync truncates on piped stdout — file-redirect
+  fix), JSON.parse with array-extraction fallback; `loadInTempProject(candidateDir,
+  name)` copies candidate into a `mkdtemp` project's `.opencode/skill/<name>/`, runs
+  the loader, asserts exact name+description+content; `checkCollision(name, cwd)`
+  queries the live catalog.
+- `candidate.ts` (90 lines): `candidateDir`, `writeCandidate` (NAME_RE + 0700/0600
+  perms), `smokeHelpers` (bun build each .js), `validateCandidate` (schema → smoke →
+  collision → isolated loader → assert name/description match).
+- 14 tests (11 candidate + 4 loader). RED: stubs → 14 fail. GREEN: 14 pass after
+  file-redirect fix for opencode stdout truncation.
+
+### Task 3.2 — Independent behavioral approval
+
+- `evaluate.ts` (108 lines): `recordApproval(input, cfg)` validates:
+  (1) candidate exists + contentHash matches (stale → reject);
+  (2) baseline must fail (proves candidate is needed);
+  (3) exactly 2 treatments, both pass (score >= 4);
+  (4) judge independent (modelId differs from baseline + treatments — not self-judged);
+  (5) judge passes (score >= 4);
+  (6) approvedBy non-empty;
+  (7) all summaries privacy-scanned via `scanFreeText`.
+  Stores at `candidates/<name>/approval.json` at 0600.
+  `loadApproval(name, cfg)` returns null if approval missing OR candidate changed
+  (contentHash mismatch — invalidation).
+- `cli.ts` updated: `distill <name>` (stdin = SKILL.md → writeCandidate) +
+  `evaluate <name>` (stdin = ApprovalInput JSON → recordApproval).
+- `command/skill-mine.md` (new): agent-facing lifecycle orchestration (capture →
+  distill → evaluate → user confirms). Documents the baseline/treatment/judge flow,
+  privacy rules, stop conditions.
+- 14 tests. RED: stubs → 14 fail. GREEN: 14 pass.
+
+### Verification (Plan 3, all exit 0)
+
+- `bun test ./.opencode/tool/skill-mine/` → 72 pass, 0 fail (142 expect calls)
+- `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` → exit 0
+- `bash .opencode/tool/structural-check.sh` → exit 0
+- `npm_config_offline=true bash .opencode/tool/verify.sh` → exit 0 (5/5 PASS)
+- `bash .opencode/tool/sync-template.sh` → 614 files; `.skill-mine/` + `project-skills/`
+  absent, `tool/skill-mine/` + `command/skill-mine.md` + `skill-mine.json` ship
+- `git diff --check` → exit 0
+
+**Status:** Plan 3 complete + shipped. Plans 4–7 pending.

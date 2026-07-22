@@ -7,10 +7,10 @@ updated: 2026-07-22
 
 ## Current Position
 
-**Active Plan:** skill-mine — Plans 1–2 shipped; Plans 3–7 pending
-**Status:** Plan 2 (Completion Evidence + Private Capture) complete + shipped; receipts + capture + privacy gate green (review-fixed)
+**Active Plan:** skill-mine — Plans 1–3 shipped; Plans 4–7 pending
+**Status:** Plan 3 (Candidate Admission + Behavioral Approval) complete + shipped; quarantine + isolated loader + hash-bound approval green (72 tests)
 **Started:** 2026-07-22
-**Phase:** skill-mine — Plans 1–2 done, Plan 3 next
+**Phase:** skill-mine — Plans 1–3 done, Plan 4 next
 
 ## Recent Completed Work
 
@@ -37,6 +37,7 @@ updated: 2026-07-22
 | 2026-07-22 | `/plan skill-mine` | Plan written (7 serial child plans, 16 TDD tasks, 15 artifacts); spec/prd reconciled with 12 Required PRD Corrections (review audit P1 contradictions); Discovery Level 3; awaiting `/ship` |
 | 2026-07-22 | skill-mine Plan 1 shipped | Control plane + validation contracts: tracked `.opencode/skill-mine.json`, `tool/skill-mine/{config,schema}.ts` (loadConfig/bootstrapRuntime + validateSkill generic+mined-admission + privacy scan), `skills.paths` registered, `.skill-mine` gitignored, sync excludes project-skills + runtime; 22 bun tests pass, typecheck + verify.sh 5/5 green |
 | 2026-07-22 | skill-mine Plan 2 shipped | Completion evidence + private capture: `types.ts` + `receipts.ts` (prepareReceipt/finalizeReceipt, git binding, idempotency, no-new-commit guard) + `capture.ts` (commit-type check, tree re-validate, privacy scan over summary/risks/paths) + `cli.ts` (prepare/finalize/capture) + schema `scanFreeText` export (ASIA + long-hex entropy); ship flow wired (build.md/ship.md). Read-only review found 7 P1+4 P2; fixed 6 P1+2 P2 inline (traversal, nested-check, idempotency, tree-OID, no-new-commit, ASIA, path-escape, perms); rejected ls-remote (offline mandate); deferred atomic-write + consumer-ignore to Plan 7. 44 tests pass, verify.sh 5/5 green |
+| 2026-07-22 | skill-mine Plan 3 shipped | Candidate admission + behavioral approval: `loader.ts` (isolated temp-project loader, file-redirect fix for opencode stdout truncation) + `candidate.ts` (quarantine writeCandidate, smokeHelpers, validateCandidate) + `evaluate.ts` (hash-bound approval: baseline must fail, 2 treatments pass ≥4/5, independent judge, contentHash invalidation) + `cli.ts` distill/evaluate + `command/skill-mine.md` (lifecycle orchestration). 72 tests pass, verify.sh 5/5 green |
 
 ## Active Decisions
 
@@ -92,13 +93,15 @@ updated: 2026-07-22
 16. [x] `/create skill-mine` — Full PRD + prd.json; self-extending governed skill library; 6-stage lifecycle
 17. [x] `/plan skill-mine` — 7-plan/16-task TDD plan; spec/prd reconciled with 12 corrections; awaiting `/ship`
 18. [x] `/ship skill-mine` Plan 1 — Control plane + validation contracts shipped; config/schema TDD green; skills.paths + sync scope boundary; verify.sh 5/5
-19. [ ] `/ship skill-mine` Plan 2 — Completion evidence + private capture (receipts + sanitized capture)
+19. [x] `/ship skill-mine` Plan 2 — Completion evidence + private capture (receipts + sanitized capture)
+20. [x] `/ship skill-mine` Plan 3 — Candidate admission + behavioral approval (quarantine + isolated loader + hash-bound approval)
+21. [ ] `/ship skill-mine` Plan 4 — Governance before promotion (retire/restore + catalog/scope budgets)
 
 ## Session Handoff
 
-**Last Session:** 2026-07-22 (`/ship skill-mine` Plan 2 shipped: receipts + capture + privacy gate; review-fixed 6 P1 + 2 P2; 44 tests pass, verify.sh 5/5 green)
-**Next Session Priority:** `/ship skill-mine` Plan 3 — Candidate Admission and Behavioral Approval. Tasks: 3.1 quarantine + isolated loader validation (candidates outside skill roots; copy into a temp project's skill root + fresh `opencode debug skill --pure` with external sources disabled; never the live root); 3.2 independent hash-bound behavioral approval (`/skill-mine distill` + `/skill-mine evaluate`; baseline w/o candidate + 2 treatment runs w/ candidate; independent review judge; baseline must fail, treatments pass ≥4/5; user confirms promotion eligibility; candidate changes invalidate approval). Treat Plan 3 as one work unit; Ship-on-Completion after verify.sh green. Stop if the isolated loader cannot prove the exact candidate loaded, or behavioral approval is not independent + content-hash-bound.
-**Known Issues:** (none — Plan 1 green and shipped)
+**Last Session:** 2026-07-22 (`/ship skill-mine` Plan 3 shipped: candidate admission + behavioral approval; loader.ts + candidate.ts + evaluate.ts + cli.ts distill/evaluate + command/skill-mine.md; 72 tests pass, verify.sh 5/5 green)
+**Next Session Priority:** `/ship skill-mine` Plan 4 — Governance Before Promotion. Tasks: 4.1 retire/restore + crash recovery (lifecycle.ts: lock + journal + same-filesystem rename; retire moves mined skills to archive; restore reinstates when destination free; rollback for incomplete ops; retire→restore twice for idempotency); 4.2 catalog + scope governance (budget.ts: count `metadata.origin: skill-mine` only; enforce max count + per-description + aggregate byte budgets; project scope → project-skills root; template scope → skill root + requires evidence from ≥2 projects + ≥2 runtime/model identities; assert project-scoped fixtures never enter template manifest). Treat Plan 4 as one work unit; Ship-on-Completion after verify.sh green. Stop if retire/restore tests fail (promotion stays disabled) or project-scoped content leaks into template export.
+**Known Issues:** (none — Plan 3 green and shipped)
 **Context Links:** `.opencode/artifacts/skill-mine/{spec,plan,progress,prd.json}`, `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/MEMORY.md`
 **Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main)
 
