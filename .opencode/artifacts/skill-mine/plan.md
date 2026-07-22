@@ -17,7 +17,7 @@ audit) subagents forced twelve corrections to the Ready PRD before planning.
 **Context Budget:** 30–45% per child plan; never execute all seven in one
 context. Each child plan is one `/ship` work unit after `verify.sh` is green.
 
-**Status:** Plans 1–4 complete + shipped; Plans 5–7 pending.
+**Status:** Plans 1–5 complete + shipped; Plans 6–7 pending.
 
 ---
 

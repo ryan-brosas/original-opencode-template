@@ -10,6 +10,11 @@
 //   bun .opencode/tool/skill-mine/cli.ts restore <name> # move an archived skill back to its original scope root
 //   bun .opencode/tool/skill-mine/cli.ts recover <name> # recover/rollback a crashed retire or restore
 //
+//   bun .opencode/tool/skill-mine/cli.ts budget            # print catalog budget check (exit 1 if over)
+//   bun .opencode/tool/skill-mine/cli.ts validate <name>    # run admission checks on a quarantined candidate
+//   bun .opencode/tool/skill-mine/cli.ts promote <name>    # promote a candidate to its active root (evidence JSON via stdin for template scope)
+//   bun .opencode/tool/skill-mine/cli.ts rollback <name>   # move a promoted skill back to quarantine (after outer release failure)
+//
 // Receipts are local (ignored runtime tree). The build agent calls `prepare`
 // after verify + staging and `finalize` after a successful push.
 
@@ -17,9 +22,10 @@ import { join } from "node:path";
 import { loadConfig, bootstrapRuntime } from "./config.js";
 import { prepareReceipt, finalizeReceipt } from "./receipts.js";
 import { capture } from "./capture.js";
-import { writeCandidate } from "./candidate.js";
+import { writeCandidate, candidateDir } from "./candidate.js";
+import { validateCandidate } from "./candidate.js";
 import { recordApproval } from "./evaluate.js";
-import { retire, restore, recover } from "./lifecycle.js";
+import { retire, restore, recover, promote, rollbackPromote } from "./lifecycle.js";
 import { checkBudget } from "./budget.js";
 import type { ProvisionalInput } from "./types.js";
 import type { ApprovalInput } from "./evaluate.js";
@@ -121,6 +127,42 @@ async function main(): Promise<number> {
       console.log(JSON.stringify(check, null, 2));
       return check.ok ? 0 : 1;
     }
+    case "validate": {
+      const name = rest[0];
+      if (!name) {
+        console.error("usage: cli.ts validate <candidateName>");
+        return 2;
+      }
+      const result = await validateCandidate(cfg, name, process.cwd());
+      console.log(`valid: ${result.name} at ${result.dir}`);
+      return 0;
+    }
+    case "promote": {
+      const name = rest[0];
+      if (!name) {
+        console.error("usage: cli.ts promote <candidateName>");
+        return 2;
+      }
+      // Read optional evidence JSON from stdin (required for template scope).
+      let opts: { evidence?: { projects: string[]; modelIds: string[] } } = {};
+      const stdin = await readStdinSafe();
+      if (stdin.trim()) {
+        opts = JSON.parse(stdin);
+      }
+      const dest = await promote(name, cfg, opts);
+      console.log(dest);
+      return 0;
+    }
+    case "rollback": {
+      const name = rest[0];
+      if (!name) {
+        console.error("usage: cli.ts rollback <skillName>");
+        return 2;
+      }
+      await rollbackPromote(name, cfg);
+      console.log(`rolled back: ${name}`);
+      return 0;
+    }
     default: {
       console.error(`unknown subcommand: ${subcommand}`);
       return 2;
@@ -133,6 +175,16 @@ function approvalPathPrint(cfg: { runtimeRoot: string }, name: string): string {
 }
 
 function readStdin(): Promise<string> {
+  return new Response(Bun.stdin).text();
+}
+
+function readStdinSafe(): Promise<string> {
+  // Returns "" if stdin is empty/closed (no TTY), so promote can skip evidence.
+  try {
+    if (process.stdin.isTTY) return Promise.resolve("");
+  } catch {
+    // not a TTY environment — read available input
+  }
   return new Response(Bun.stdin).text();
 }
 

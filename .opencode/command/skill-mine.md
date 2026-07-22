@@ -35,6 +35,15 @@ bun .opencode/tool/skill-mine/cli.ts restore <skillName>
 
 # 6. Recover/rollback a crashed retire or restore
 bun .opencode/tool/skill-mine/cli.ts recover <skillName>
+
+# 7. Validate a quarantined candidate (admission checks)
+bun .opencode/tool/skill-mine/cli.ts validate <candidateName>
+
+# 8. Promote a candidate to its active root (evidence JSON via stdin for template scope)
+bun .opencode/tool/skill-mine/cli.ts promote <candidateName> < evidence.json
+
+# 9. Rollback a promotion (move a promoted skill back to quarantine)
+bun .opencode/tool/skill-mine/cli.ts rollback <skillName>
 ```
 
 ## Lifecycle
@@ -135,6 +144,39 @@ bun .opencode/tool/skill-mine/cli.ts recover <skillName>
 
 Both operations require an opencode restart to take effect (the skill loader
 is startup-scanned, not hot-reloaded).
+
+### 5. Validate and Promote
+
+Before promotion, validate the candidate passes all admission checks (schema,
+provenance, privacy, helper smoke, collision, isolated loader):
+
+```bash
+bun .opencode/tool/skill-mine/cli.ts validate <candidateName>
+```
+
+Promote moves the candidate from quarantine into its scope-specific active
+root. Promotion revalidates lint, helpers, behavioral approval, budget, and
+destination. It does NOT commit or push — `/ship` owns the Git release boundary.
+
+```bash
+# Project scope (no evidence needed)
+bun .opencode/tool/skill-mine/cli.ts promote <candidateName>
+
+# Template scope (requires evidence: ≥2 projects + ≥2 modelIds)
+echo '{"projects":["p1","p2"],"modelIds":["m1","m2"]}' | \
+  bun .opencode/tool/skill-mine/cli.ts promote <candidateName>
+```
+
+After promotion, commit and push the new active skill via the standing
+`/ship` flow. If the outer verify or push fails, rollback the promotion:
+
+```bash
+bun .opencode/tool/skill-mine/cli.ts rollback <skillName>
+```
+
+Rollback moves the skill back to quarantine so it is not left active but
+unshipped. All three operations (promote, rollback, validate) require an
+opencode restart to take effect in the live catalog.
 
 ## Privacy Rules
 

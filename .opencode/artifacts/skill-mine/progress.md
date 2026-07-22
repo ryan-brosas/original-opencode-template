@@ -263,3 +263,63 @@ budgets.
 - `git diff --check` → exit 0
 
 **Status:** Plan 4 complete + shipped. Plans 5–7 pending.
+
+## 2026-07-22 — Plan 5 shipped (`/ship skill-mine` Plan 5)
+
+Promotion + Release Transaction. TDD: RED (stubs) → GREEN (implementation).
+
+### Task 5.1 — Atomic promotion
+
+- `lifecycle.ts` extended with `promote(name, cfg, opts)`:
+  - 7 guards: (1) stale lock, (2) candidate exists in quarantine, (3) lint
+    revalidation (schema + provenance + privacy), (4) helper smoke, (5)
+    behavioral approval present + contentHash match, (6) template-scope evidence
+    (≥2 projects + ≥2 modelIds), (7) budget projection (count + per-description +
+    aggregate bytes) + destination collision (both active roots).
+  - Acquires lock → writes journal (`operation: "promote"`) → atomic `renameSync`
+    (candidate → active root) → clears journal.
+  - Does NOT run Git operations — `/ship` owns the release boundary.
+- `lifecycle.ts` `rollbackPromote(name, cfg)`: moves a promoted skill from its
+  active root back to quarantine (after outer /ship verify/push failure).
+  Lock + journal (`operation: "rollback-promote"`) + atomic rename.
+- `lifecycle.ts` `recover` extended: handles `promote` and `rollback-promote`
+  journal entries (complete if rename happened, rollback if it didn't).
+- `Operation` type extended: `"retire" | "restore" | "promote" | "rollback-promote"`.
+- `cli.ts`: `validate`, `promote`, `rollback` subcommands added. `promote` reads
+  optional evidence JSON from stdin (`readStdinSafe` — TTY-aware, returns "" for
+  project scope, reads piped JSON for template scope).
+- `command/skill-mine.md`: validate/promote/rollback sections + lifecycle docs.
+- 16 new tests (RED: stubs threw "not implemented" → 14 fail; GREEN: 14 pass +
+  2 recover-promote tests). Total: 114 tests across 9 files.
+
+### Task 5.2 — Full isolated lifecycle test
+
+- `skill-mine-integration-test.sh` (new, ~140 lines): temp git repo + bare remote
+  + temp config. Exercises the full CLI lifecycle end-to-end:
+  receipt prepare/finalize → capture → distill → evaluate (hash-bound) → validate
+  → promote (project scope) → retire → restore → rollback (push-failure simulation)
+  → template-scope promote (with evidence) → fresh-process loader
+  (`opencode debug skill --pure` from a temp project) → assertions (no leaks,
+  runtime local).
+- Gotchas fixed during integration:
+  1. `OPENCODE` env var is set to `1` by the opencode process — `${OPENCODE:-opencode}`
+     uses `1`. Fixed: `OPENCODE="$(command -v opencode || echo opencode)"`.
+  2. Evidence JSON must be `{"evidence":{...}}` (wrapped), not top-level
+     `{"projects":...,"modelIds":...}` — matches `PromoteOptions` shape.
+  3. Template-scope promote needs the `skill` subdir to exist (`mkdir -p "$TMPL_SKILLS"`).
+  4. Step 9 rollback: the skill was already in the active root (promoted in step 7,
+     retired+restored in step 8) — just rollback, don't re-promote.
+
+### Verification (Plan 5, all exit 0)
+
+- `bun test ./.opencode/tool/skill-mine/` → 114 pass, 0 fail (220 expect calls)
+- `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` → exit 0
+- `bash .opencode/tool/structural-check.sh` → exit 0
+- `npm_config_offline=true bash .opencode/tool/verify.sh` → exit 0 (5/5 PASS)
+- `bash .opencode/tool/sync-template.sh` → 619 files; project-skills +
+  .skill-mine absent, tool/skill-mine/ + skill-mine-integration-test.sh ship
+- `bash .opencode/tool/skill-mine-integration-test.sh` → PASSED (fresh-process
+  loader FOUND the promoted skill; no project/template leak; runtime local)
+- `git diff --check` → exit 0
+
+**Status:** Plan 5 complete + shipped. Plans 6–7 pending.

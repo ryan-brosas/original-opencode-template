@@ -7,10 +7,10 @@ updated: 2026-07-22
 
 ## Current Position
 
-**Active Plan:** skill-mine — Plans 1–4 shipped; Plans 5–7 pending
-**Status:** Plan 4 (Governance Before Promotion) complete + shipped; retire/restore + crash recovery + catalog/scope budgets green (98 tests)
+**Active Plan:** skill-mine — Plans 1–5 shipped; Plans 6–7 pending
+**Status:** Plan 5 (Promotion + Release Transaction) complete + shipped; atomic promote + rollbackPromote + crash recovery + full isolated lifecycle integration test green (114 tests)
 **Started:** 2026-07-22
-**Phase:** skill-mine — Plans 1–4 done, Plan 5 next
+**Phase:** skill-mine — Plans 1–5 done, Plan 6 next
 
 ## Recent Completed Work
 
@@ -39,6 +39,7 @@ updated: 2026-07-22
 | 2026-07-22 | skill-mine Plan 2 shipped | Completion evidence + private capture: `types.ts` + `receipts.ts` (prepareReceipt/finalizeReceipt, git binding, idempotency, no-new-commit guard) + `capture.ts` (commit-type check, tree re-validate, privacy scan over summary/risks/paths) + `cli.ts` (prepare/finalize/capture) + schema `scanFreeText` export (ASIA + long-hex entropy); ship flow wired (build.md/ship.md). Read-only review found 7 P1+4 P2; fixed 6 P1+2 P2 inline (traversal, nested-check, idempotency, tree-OID, no-new-commit, ASIA, path-escape, perms); rejected ls-remote (offline mandate); deferred atomic-write + consumer-ignore to Plan 7. 44 tests pass, verify.sh 5/5 green |
 | 2026-07-22 | skill-mine Plan 3 shipped | Candidate admission + behavioral approval: `loader.ts` (isolated temp-project loader, file-redirect fix for opencode stdout truncation) + `candidate.ts` (quarantine writeCandidate, smokeHelpers, validateCandidate) + `evaluate.ts` (hash-bound approval: baseline must fail, 2 treatments pass ≥4/5, independent judge, contentHash invalidation) + `cli.ts` distill/evaluate + `command/skill-mine.md` (lifecycle orchestration). 72 tests pass, verify.sh 5/5 green |
 | 2026-07-22 | skill-mine Plan 4 shipped | Governance before promotion: `lifecycle.ts` (retire/restore/recover: lock+journal+same-filesystem rename, crash recovery/rollback, rejects non-mined, idempotent) + `budget.ts` (scanMinedSkills, checkBudget count+per-desc+aggregate, checkTemplatePromotionEvidence ≥2 projects+≥2 models) + `cli.ts` retire/restore/recover/budget subcommands + `command/skill-mine.md` retire/restore docs. 98 tests pass, verify.sh 5/5 green |
+| 2026-07-22 | skill-mine Plan 5 shipped | Promotion + release transaction: `lifecycle.ts` promote (7 guards: lint revalidate, helper smoke, hash-bound approval, lock, destination collision, budget projection, template-scope evidence; atomic rename; no Git ops) + rollbackPromote (active→quarantine after outer release failure) + extended recover for promote journals; `cli.ts` validate/promote/rollback subcommands; `skill-mine-integration-test.sh` full lifecycle end-to-end (receipt→capture→distill→evaluate→validate→promote→fresh-process loader→retire→restore→rollback→template-scope promote with evidence); `command/skill-mine.md` promote/validate/rollback docs. 114 tests pass, verify.sh 5/5, integration test PASSED, fresh-process loader confirmed, no leaks. |
 
 ## Active Decisions
 
@@ -97,13 +98,14 @@ updated: 2026-07-22
 19. [x] `/ship skill-mine` Plan 2 — Completion evidence + private capture (receipts + sanitized capture)
 20. [x] `/ship skill-mine` Plan 3 — Candidate admission + behavioral approval (quarantine + isolated loader + hash-bound approval)
 21. [x] `/ship skill-mine` Plan 4 — Governance before promotion (retire/restore + crash recovery + catalog/scope budgets)
-22. [ ] `/ship skill-mine` Plan 5 — Promotion + release transaction (atomic promotion, full isolated lifecycle test)
+22. [x] `/ship skill-mine` Plan 5 — Promotion + release transaction (atomic promote, rollbackPromote, crash recovery, full isolated lifecycle integration test)
+23. [ ] `/ship skill-mine` Plan 6 — Usage telemetry, gated by runtime proof
 
 ## Session Handoff
 
-**Last Session:** 2026-07-22 (`/ship skill-mine` Plan 4 shipped: governance before promotion; lifecycle.ts retire/restore/recover + budget.ts catalog/scope budgets + cli.ts budget subcommand; 98 tests pass, verify.sh 5/5 green)
-**Next Session Priority:** `/ship skill-mine` Plan 5 — Promotion + Release Transaction. Tasks: 5.1 atomic promotion (lifecycle.ts: revalidate + lock + journal + same-filesystem rename to scope-specific root; reject absent lint/behavioral approval, stale content hash, active lock, destination collision, budget overflow, wrong scope evidence; promotion does NOT commit — `/ship` owns the Git release; on outer verify/release failure, move skill back to quarantine); 5.2 full isolated lifecycle test (skill-mine-integration-test.sh: temp project + bare remote; exercise receipt→capture→quarantine→admission→approval→promote→fresh-process loader→retire→restore→push-failure rollback; confirm runtime state ignored; confirm no project-scoped skill in template manifest). Treat Plan 5 as one work unit; Ship-on-Completion after verify.sh green. Stop if promotion is not atomic, or release boundary competes with /ship, or isolated lifecycle test fails.
-**Known Issues:** (none — Plan 4 green and shipped)
+**Last Session:** 2026-07-22 (`/ship skill-mine` Plan 5 shipped: promotion + release transaction; lifecycle.ts promote + rollbackPromote + extended recover for promote journals; cli.ts validate/promote/rollback subcommands; skill-mine-integration-test.sh full lifecycle end-to-end (receipt→capture→distill→evaluate→validate→promote→fresh-process loader→retire→restore→rollback→template-scope promote); 114 tests pass, verify.sh 5/5, integration test PASSED)
+**Next Session Priority:** `/ship skill-mine` Plan 6 — Usage Telemetry, Gated by Runtime Proof. Tasks: 6.1 native skill-hook proof (plugin/skill-mine-telemetry.ts: narrow observer for tool.execute.after when tool==="skill"; append-only usage.jsonl; if the built-in skill call does not reach the hook, remove/disable the observer and provide explicit `/skill-mine usage record <name>` instead); 6.2 reporting + retirement recommendations (usage.ts: counts, last-used date, evidence-backed recommendations; never auto-retire; missing telemetry = "unknown" not zero). Treat Plan 6 as one work unit; Ship-on-Completion after verify.sh green. Stop if the built-in skill call does not reach the telemetry hook (use manual fallback).
+**Known Issues:** (none — Plan 5 green and shipped)
 **Context Links:** `.opencode/artifacts/skill-mine/{spec,plan,progress,prd.json}`, `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/MEMORY.md`
 **Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main)
 
