@@ -10,6 +10,7 @@ plugin/
 ├── diagnostics.ts      # Post-edit diagnostics auto-injection (type/lint/slop)
 ├── diagnostics/        # diagnostics helper modules
 ├── guard.ts            # Safety guardrails (pipe-to-shell, commit format)
+├── repo-boundary.ts    # Repo-boundary liveness detector (warn-based)
 ├── skill-mcp.ts        # Skill-scoped MCP bridge (skill_mcp tools)
 └── skill-mcp/          # skill-mcp helper modules
 ```
@@ -24,6 +25,9 @@ plugin/
 
 - `guard.ts`
   - Safety guardrails: blocks pipe-to-shell (`| sh`) and enforces commit message format
+
+- `repo-boundary.ts`
+  - Liveness detector: warns (stderr + best-effort TUI toast) if opencode starts outside the bubblewrap sandbox wrapper (marker absent or directory inconsistent). Warns, never throws — opencode swallows factory throws, so this is a detector, not a security boundary. Tests live at `.opencode/tool/repo-boundary/repo-boundary.test.ts` (run via `bun test`).
 
 - `skill-mcp.ts` + `skill-mcp/`
   - Loads MCP configs from skills

@@ -81,6 +81,43 @@ Memory is file-based in `.opencode/artifacts/MEMORY.md` (grep/read/edit, no DB).
 
 See `.opencode/plugin/README.md` for plugin details.
 
+## Repo Boundary Sandbox (optional, Linux-only)
+
+An **opt-in** runtime filesystem sandbox that stops the agent tree drifting to
+other repos/folders. Defense in depth on top of the always-on config
+`permission.external_directory: "deny"` (locked by `structural-check.sh` Check 7).
+
+- **Launcher** — `.opencode/tool/opencode-sandbox.sh` wraps opencode in a
+  fail-closed bubblewrap mount namespace. The workspace is bound read-write;
+  sibling repos/folders are simply never mounted. Preflight rejects broad
+  roots (`/`, `$HOME`, ancestors of `$HOME`), non-git dirs, and linked
+  worktrees; bwrap's own namespace setup is inherently fail-closed (a failed
+  setup exits nonzero without exec'ing the child). **V1 = accidental path
+  drift only** — malicious repo/model-code vectors (hard links, sockets/FIFOs,
+  descendant mounts) are deferred.
+- **Trusted install** — the wrapper must be installed OUTSIDE the workspace
+  (`install -Dm0555 .opencode/tool/opencode-sandbox.sh ~/.local/bin/opencode-sandbox`)
+  so a workspace-owned copy isn't a durable trust anchor. The repo copy is only
+  the installable source; agents must never modify the installed wrapper. See
+  `opencode-sandbox.conf.example` for the companion config.
+- **Linux-only** — bubblewrap is Linux-only and must be setuid for
+  unprivileged use (`sudo chmod u+s /usr/bin/bwrap`). Unsupported environments
+  fail closed; there is no fallback. Network is intentionally shared
+  (provider/API/Git access); this is filesystem containment, not a network or
+  secret sandbox — passed credentials are readable by same-UID descendants.
+- **Normal checkouts only** — linked worktrees are rejected in V1; use a
+  normal git checkout (`.git` is a directory, not a gitfile).
+- **Sandbox-local state** — XDG (config/cache/data/state) + HOME live in
+  `.opencode/.sandbox-state/` (mode 0700, gitignored, never shipped to
+  consumers). The host `$HOME` is never mounted. Provider auth and a minimal
+  git identity must be imported into this tree on first run; see the
+  `state_dir` docs in `opencode-sandbox.conf.example`.
+- **Liveness detector** — `.opencode/plugin/repo-boundary.ts` warns (stderr +
+  best-effort TUI toast) if opencode starts outside the wrapper (marker absent
+  or directory inconsistent). It is a detector, not a security boundary — the
+  marker is forgeable and opencode swallows factory throws, so it warns rather
+  than fail-closing.
+
 ## Workflows
 
 Workflows live in `.opencode/workflows/` and define reusable multi-agent orchestration plans. Each is a markdown file that specifies phases with agent types, concurrency, dependencies, and prompt templates.

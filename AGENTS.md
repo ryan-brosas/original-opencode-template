@@ -63,6 +63,7 @@ Local plugins live in `.opencode/plugin/*.ts` (default-export a `Plugin`). Exter
 - **Verify after plugin/tool edits:** run `verify.sh` (full, incl. semantic typecheck) or `structural-check.sh` (invariants); both exit 1 on failure. No test suite out of the box.
 - **Durable context:** `rg -n "topic" .opencode/artifacts/MEMORY.md` before work; append decisions there.
 - **Edit protocol / delegation / search:** see `.opencode/AGENTS.md` (behavioral kernel).
+- **Repo boundary:** `permission.external_directory: "deny"` (locked by `structural-check.sh` Check 7). An optional Linux-only bubblewrap sandbox (`.opencode/tool/opencode-sandbox.sh`) adds runtime containment; see `.opencode/README.md` → Repo Boundary Sandbox.
 
 ## Gotchas
 - `typescript` is a devDependency (7.0.2); use the nested `.opencode/node_modules/.bin/tsc`, never bare/`npx tsc` (which may resolve to an unpinned or missing global). Consumer templates ship the manifest — run `npm ci --prefix .opencode` to install the compiler and enable the typecheck (without it, `verify.sh` SKIPs Check 4/5 with an install hint).

@@ -36,6 +36,12 @@ bash .opencode/tool/verify.sh
 Exit 0 = no check failed (SKIPs do not count as failures). Exit 1 = one or more
 failed — read the per-check FAIL lines.
 
+> The repo boundary has two layers: the **static invariant** above (Check 2 —
+> `external_directory` must be `deny`, always verified by `verify.sh`) and an
+> **optional runtime sandbox** (`.opencode/tool/opencode-sandbox.sh`, a
+> bubblewrap launcher installed + invoked separately — not a `verify.sh` check).
+> See `.opencode/README.md` → Repo Boundary Sandbox.
+
 ## Behavior
 
 - **Read-only.** You are the review agent. Do not edit, write, commit, or append

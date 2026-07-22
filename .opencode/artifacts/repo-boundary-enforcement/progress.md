@@ -106,6 +106,15 @@ Shipped the packaging GATE (the safety property). Deferred the docs batch (Task 
 
 ## Open work
 
+## Shipped: Plan 02 Task 2 — repo boundary sandbox docs
+
+Changed: `.opencode/README.md:80-113` (new "Repo Boundary Sandbox" section — canonical detailed doc), `AGENTS.md:66` (Conventions pointer, auto-injected-safe), `.opencode/tech-stack.md:43` (Key Constraints bullet), `.opencode/command/verify.md:38-43` (static-invariant-vs-runtime-launcher clarification), `.opencode/plugin/README.md:13,29-31` (repo-boundary.ts in tree + responsibilities), `.opencode/.template-manifest.json` (regenerated, docs ship)
+Commands: `bash .opencode/tool/verify.sh` (exit 0), content assertions for all 5 concepts (trusted install / Linux-only / network+secret limits / normal-checkout / sandbox-local provider+git) all PASS, cross-file pointers present, `.sandbox-state` not in manifest (PASS)
+Result: PASS — all gates green
+
+Docs cover the 5 plan concepts, concentrated in README.md (not auto-injected) with brief pointers in AGENTS.md/tech-stack.md/verify.md (auto-injected or read-on-demand, kept short). Wording aligned with `opencode-sandbox.conf.example` (setuid, sandbox-local XDG, host $HOME never mounted, auth import). verify.md clarifies the static invariant is a verify.sh Check 2 while the runtime launcher is separate/optional — not a verify.sh check. Skipped formal review (docs-only prose summarizing already-shipped + already-reviewed behavior).
+
+## Open work
+
 - **Plan 02 Task 1 (remainder)** — **ARCHITECTURE DECISION PENDING (user):** the plan says wire the launcher + real-bwrap into `verify.sh` with "missing bwrap = hard FAIL not SKIP". But `verify.sh` has an established SKIP convention (Check 4 typecheck SKIPs when the compiler is absent — `verify.sh:14,68-69,82-86`; header line 5: "SKIPs do not fail") and ships to ALL consumers. Hard-failing on missing bwrap would break `verify.sh` for every macOS/WSL/non-setuid-bwrap consumer, blocking ALL their verification (typecheck, structural, config) — not just the boundary check. Options: (a) SKIP-when-bwrap-unavailable (matches verify.sh's existing portability contract; catches regressions WHERE bwrap is present); (b) hard-FAIL (matches the plan's literal wording; breaks non-Linux-setuid consumers); (c) separate `verify-sandbox.sh` invoked only when the sandbox is active (Task 3). Needs user decision before wiring.
-- **Plan 02 Task 2 (docs)** — deferred docs batch (trusted install / Linux-only / network+secret limits / normal-checkout / sandbox-local provider+git) — prose, for Task 3 user instructions.
 - **Plan 02 Task 3** — manual activation + evidence closeout (USER checkpoint: install wrapper outside workspace, restart, `opencode-sandbox-test.sh --active`, then record + remove `.active`). Hard manual checkpoint — cannot complete autonomously.

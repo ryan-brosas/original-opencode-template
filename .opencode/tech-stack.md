@@ -40,6 +40,7 @@ This file is the detailed tech-stack map (read on demand). The concise project m
 - Filename convention: kebab-case only.
 - `typescript` is a devDependency (7.0.2, exact); semantic typecheck runs via `verify.sh` using the pinned local `.opencode/node_modules/.bin/tsc`. Consumer templates ship the manifest — run `npm ci --prefix .opencode` to enable the typecheck (without the compiler installed, `verify.sh` SKIPs Check 4/5 with an install hint).
 - Never edit `template/` (untracked reference copy) or generated `dist/`.
+- **Repo boundary:** config `permission.external_directory: "deny"` (locked by `structural-check.sh` Check 7). An optional Linux-only bubblewrap sandbox (`.opencode/tool/opencode-sandbox.sh`) adds runtime filesystem containment — opt-in, fail-closed, normal checkouts only, network shared, secrets not isolated. See `.opencode/README.md` → Repo Boundary Sandbox.
 
 ## Active Integrations
 
