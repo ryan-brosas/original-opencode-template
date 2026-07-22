@@ -1,0 +1,26 @@
+# opencode-sandbox.conf.example — config for the opencode-sandbox launcher.
+#
+# Copy to ~/.config/opencode-sandbox/config and edit. Each line is `key=value`.
+# Environment variables override these (OPENCODE_SANDBOX_BWRAP, etc.). Lines
+# starting with `#` are comments. Values are parsed literally (no eval/quotes).
+
+# Path to the bubblewrap binary. Must be executable and (for unprivileged use)
+# setuid: `sudo chmod u+s /usr/bin/bwrap`. bwrap runs as root just long enough
+# to set up the child's uid/gid maps, then drops to the calling user.
+bwrap_bin=/usr/bin/bwrap
+
+# The child to run inside the sandbox. Defaults to `opencode` resolved on PATH.
+# For an absolute/relative path, the launcher uses it directly.
+opencode_bin=opencode
+
+# Space-separated allowlist of host environment variables to forward into the
+# sandbox (via bwrap --setenv, after --clearenv). PATH is always useful.
+# Add provider/proxy vars you need, e.g.: PATH OPENCODE_SANDBOX_CHILD MAKORA_API_KEY
+env_allow=PATH
+
+# Workspace-relative path for sandbox-local XDG state (config/cache/data/state)
+# and a sandbox HOME. Created 0700. Keeps auth/sessions/cache inside the
+# workspace instead of mounting the host $HOME (which is never mounted).
+# On first run you must import provider/git credentials into this tree
+# (Plan 02 Task 2) — the host $HOME is intentionally absent from the namespace.
+state_dir=.opencode/.sandbox-state

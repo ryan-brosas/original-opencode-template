@@ -34,3 +34,33 @@ Risks: docs/contract only — no runtime change. The active spec no longer claim
 - **Plan 02 Task 1 (remainder)** — wire the launcher + real-bwrap integration into `verify.sh` (missing bwrap = hard FAIL).
 - **Plan 02 Task 2** — package without exporting state (`.gitignore` + `sync-template.sh` exclusion + manifest).
 - **Plan 02 Task 3** — manual activation + evidence closeout (USER checkpoint: install wrapper outside workspace, restart, `opencode-sandbox-test.sh --active`, then record + remove `.active`).
+
+### 2026-07-22 — Launcher TDD (Plan 01 Task 2) — SHIPPED
+
+## Shipped: fail-closed bubblewrap launcher + test + conf.example; real-bwrap containment proven
+Changed: .opencode/tool/opencode-sandbox.sh (new, 188 lines), .opencode/tool/opencode-sandbox-test.sh (new, 248 lines), .opencode/tool/opencode-sandbox.conf.example (new, 26 lines), .opencode/.template-manifest.json (regenerated)
+Commands: `bash .opencode/tool/opencode-sandbox-test.sh` (exit 0, 45 assertions, 0 skipped), `bash .opencode/tool/verify.sh` (exit 0)
+Result: PASS — all gates green
+Risks:
+  - **Containment PROVEN by real bwrap**: R1 workspace-RW, R2 fixture sibling invisible (no broad mount), R3 /usr read-only, R4 external child (outside workspace) execs via the child-bind fix. Child runs as the calling (non-root) user via `--unshare-user`.
+  - **Manual checkpoint completed**: user ran `sudo chmod u+s /usr/bin/bwrap` (setuid). bwrap is `-rwsr-xr-x`. Without setuid, bwrap cannot create namespaces on this host (AppArmor/dumpable gate — no unprivileged workaround; see `(b11)`).
+  - **`--disable-userns` intentionally omitted**: bwrap reads `/proc/sys/user/max_user_namespaces` to validate it, AppArmor denies that read to setuid-root bwrap. `--disable-userns` only guards NESTED userns escape (a malicious-actor vector, out of V1). `--unshare-user` (kept) drops the child to non-root (proven uid=1000) — the V1 security property holds.
+  - **V2 hardening DEFERRED** (malicious-repo/model vectors, out of V1 accidental-drift scope): hard links (st_nlink>1), sockets/FIFOs/devices in the recursive workspace bind (network intentionally shared), descendant bind/FUSE mounts (mountinfo scan), real-bwrap containment as a hard test gate (test SKIPS for portability; launcher always fails closed).
+
+Security review (read-only `review` subagent) found 1 functional blocker + several V1-accidental gaps + several malicious-vector findings. Applied all V1-essential fixes inline and re-verified green:
+  - **P1 child not mounted (functional)** — the real opencode at `~/.local/bin/opencode` lives under `$HOME` (never mounted), so bwrap failed at exec; the test had masked this by placing the probe inside the workspace. Fix: `--ro-bind` the resolved child into the namespace when it lives outside the mounted RO roots. Proven by new R4 (external child execs). NOTE: the opencode wrapper execs `$HOME/.opencode/bin/opencode` (real binary + 1.8GB db under `$HOME`) — full opencode activation (sandbox-local auth/identity/data) is Plan 02 Task 2/3 (manual checkpoint), not a Task 2 launcher bug; the launcher correctly execs the configured child in a contained namespace.
+  - P1 lexical `$HOME` — canonicalized HOME for the broad-root check (catches symlinked home + rejects empty/unset).
+  - P2 `GIT_*` env bypass — git discovery now runs with location GIT_* env stripped; symlinked `.git` rejected.
+  - P2 `/opt` removed (leaked non-runtime user data; opencode/bun don't need it).
+  - P3 probe exit-code reporting fixed (`if !` reported `!`'s status).
+  - P1 `ENV_ALLOW` var-name validation before indirect expansion.
+  - P2 config integrity — reject symlinked + group/other-writable config (trust-anchor hygiene for bwrap_bin selection).
+  - P1 state_dir `..`/absolute escape rejected.
+  - Test: added sentinel ("child never ran") checks to all preflight cases, P9 (`..` state_dir), R4 (external child), `--ro-bind / /` contract assertion.
+
+## Open work
+
+- **Plan 01 Task 3** — Liveness-guard TDD: `repo-boundary.test.ts` RED → `repo-boundary.ts` GREEN (startup plugin proves marker + canonical root; NOT a security boundary).
+- **Plan 02 Task 1 (remainder)** — wire the launcher + real-bwrap integration into `verify.sh` (missing bwrap = hard FAIL).
+- **Plan 02 Task 2** — package without exporting state (`.gitignore` + `sync-template.sh` exclusion + manifest) + sandbox-local opencode/auth/git-identity activation design.
+- **Plan 02 Task 3** — manual activation + evidence closeout (USER checkpoint: install wrapper outside workspace, restart, `opencode-sandbox-test.sh --active`, then record + remove `.active`).

@@ -1,6 +1,6 @@
 {
   "version": "0.24.0",
-  "createdAt": "2026-07-22T07:49:50.000Z",
+  "createdAt": "2026-07-22T08:54:38.000Z",
   "files": {
     ".env.example": "eed235067006ee00d43985ceb0fa54e9f1e788e7a300ff4cd537e9bd22e3d2bf",
     ".gitignore": "219b87635f468085ddc1e60d03293c4e2330c27be49cf00489a51a104ef56d0a",
@@ -30,7 +30,7 @@
     "command/research.md": "4e5776a535c187e6f0f2f170a11d8c998e36cddc4b93df9017782da9caf657b0",
     "command/ship.md": "1762d0d27d3b5e9b87d2750748862bfe306994c98182bb3be66273e997921426",
     "command/skill-mine.md": "958e12431062d469df28585fab6a8374f2107a9f920dc6e062440436149a9770",
-    "command/verify.md": "ddc7fc10f5c423595ae8355ea5829e2255e3954c0798c35ca16e3be12f8fb1e1",
+    "command/verify.md": "e461fe73d7df896d3735fb0814f849a2071f4a4b736a2f38c3a6ca36127df35e",
     "dcp-prompts/defaults/README.md": "9d6d7f50ca5f89ed2839f0b277bbc1ecb18753aecebf172e4387625e6bf16d8d",
     "dcp-prompts/defaults/compress-message.md": "030866f2d3a031f781ebdc1fcc6fc0e1d6f6ca5cbc36448edd950bcd1163f123",
     "dcp-prompts/defaults/compress-range.md": "78bf4f650f1fd5de10d1d9d6e36dc317a4954072e4b26572ac507e3384c0175d",
@@ -591,6 +591,9 @@
     "templates/user.md": "d7e61fde51341b4c2bb3be06f30fdd00f192c180ec92eedd84c4e61adb7d5ad7",
     "tool/context7.ts": "aacb4f5ee4c148e1143f116e3492d2a14f2bd7ee2260b91227df7423671494a6",
     "tool/grepsearch.ts": "a112955935ff6c96c09c426d891c08efce1bd50ea9d0d2237c45b6b05f6c53ad",
+    "tool/opencode-sandbox-test.sh": "078ece745ff4e775f19e17e34fb51c4311f12b3fc802649912a497ece205dc6e",
+    "tool/opencode-sandbox.conf.example": "5f9b8d29c7a5afcf35f0d5ec310e015157a8b4793368830665a0cc45d73e8a49",
+    "tool/opencode-sandbox.sh": "f498768465894a77c67e3251d18763814ca7ff824b441e076f0ce7b1fb3ec0f7",
     "tool/repo-boundary-invariant-test.sh": "c1deeeb803a7a6f65b89245eb20a1946a2fafe10bd7c3d35f080b10fc694ea27",
     "tool/skill-mine-integration-test.sh": "fa21eea5b518ecdfbfe49027042da97261a4880eacb8cf09b0da9358bada58c9",
     "tool/skill-mine/budget.test.ts": "924c7f79ecdc4728e3fb03119308fc2c83ac6c6e90aef5c0c458d78f96f32809",
