@@ -7,10 +7,10 @@ updated: 2026-07-22
 
 ## Current Position
 
-**Active Plan:** skill-mine — COMPLETE (all 7 plans shipped)
-**Status:** Self-extending governed skill lifecycle live: capture → distill → validate → evaluate → promote → retrieve → retire/restore. 132 tests pass, verify.sh 5/5, integration test PASSED. Telemetry live-hook proof pending user restart.
+**Active Plan:** repo-index — COMPLETE (negative result, not shipped)
+**Status:** Bounded on-demand `/repo-index <scope>` locator experiment run to a proof gate on 3 tasks (this template + 2 consumers). Result: DELETE — `/repo-index` added +22 localization turns (57 vs 35) and recovered 0 wrong-file starts; the bounded-output budget drove broader search, not narrower. Stop conditions #1/#5/#6 held. Command removed (never committed); AGENTS.md/README.md reverted. Experiment record kept in `.opencode/artifacts/repo-index/`. No active plan now.
 **Started:** 2026-07-22
-**Phase:** skill-mine — COMPLETE
+**Phase:** repo-index — COMPLETE (negative result)
 
 ## Recent Completed Work
 
@@ -33,6 +33,7 @@ updated: 2026-07-22
 | 2026-07-22 | `/plan semantic-typecheck` | Plan written (448 lines, 4 plans/8 tasks); spec/prd reconciled with review-audit corrections (Check 4/5, nested gitignore trim, plugin/tsconfig, isolated regression test, generic export, finalization); pins `typescript@7.0.2`+`@types/bun@1.3.14`+`@types/node@24.12.2`; awaiting `/ship` |
 | 2026-07-22 | semantic-typecheck shipped | 5-check `verify.sh` (typecheck = Check 4/5, nested pinned `tsc`, consumer SKIP); `typescript@7.0.2`+`@types/bun@1.3.14`+`@types/node@24.12.2` tracked; 3 baseline errors fixed (`guard.ts:20` narrowing, removed `bun.d.ts` shim); `verify-typecheck-test.sh` isolated regression test; `sync-template.sh` generic artifact allowlist; docs updated; verify.sh green |
 | 2026-07-22 | Template ships typecheck deps | Consumer-clean reversed: `sync-template.sh` ships `package.json`/`package-lock.json`; consumers run `npm ci --prefix .opencode` for 5/5; template verify = 5/5 PASS (was 4+SKIP); SKIP path kept as fresh-checkout fallback |
+| 2026-07-22 | repo-index proof gate | Bounded `/repo-index <scope>` locator experiment run on 3 tasks (template + 2 consumers). DELETE — not shipped: +22 turns (57 vs 35), 0 WFS recovered; bounded-output budget drove over-search. Stop conditions #1/#5/#6 held. Command removed (never committed), AGENTS.md/README reverted; record in `.opencode/artifacts/repo-index/`; MEMORY.md + roadmap.md note the negative result |
 | 2026-07-22 | `/create skill-mine` | Full PRD (358 lines) + prd.json (194 lines): self-extending governed skill library; 6-stage lifecycle, ignored quarantine, phased delivery, 8 success criteria; deep research (3 explore + 1 scout + 1 review) |
 | 2026-07-22 | `/plan skill-mine` | Plan written (7 serial child plans, 16 TDD tasks, 15 artifacts); spec/prd reconciled with 12 Required PRD Corrections (review audit P1 contradictions); Discovery Level 3; awaiting `/ship` |
 | 2026-07-22 | skill-mine Plan 1 shipped | Control plane + validation contracts: tracked `.opencode/skill-mine.json`, `tool/skill-mine/{config,schema}.ts` (loadConfig/bootstrapRuntime + validateSkill generic+mined-admission + privacy scan), `skills.paths` registered, `.skill-mine` gitignored, sync excludes project-skills + runtime; 22 bun tests pass, typecheck + verify.sh 5/5 green |

@@ -113,6 +113,29 @@ do not restore every-turn injection.
 
 ---
 
+## Experiments
+
+### repo-index — bounded on-demand locator (resolved: negative, not shipped)
+
+Tried a bounded `/repo-index <scope>` command under the `explore` agent: a
+~40-line / ~1,500-token, `path:line`-citing locator map generated per call, NOT
+a tracked/injected file. Proof gate on 3 tasks (this template + 2 consumers)
+measured localization turns vs the existing `explore`/`zoom-out` baseline:
+
+| Task | Baseline | Index | Δ | WFS baseline | WFS index |
+| ---- | -------: | ----: | --: | ----------: | -------: |
+| template (skill-mine promote) | 13 | 20 | +7 | 0 | 0 |
+| personal-website (Astro content) | 12 | 29 | +17 | 0 | 0 |
+| portfolio-mastrabot (Mastra runtime) | 10 | 8 | −2 | 1 | 1 |
+| **Total** | **35** | **57** | **+22** | **1** | **1** |
+
+**Result:** DELETE — not shipped. The bounded *output* budget did not bound
+*tool calls*; the 4-section completeness contract drove broader search, not
+narrower. +22 turns, zero wrong-file-starts recovered (the one consumer WFS
+recurred in both legs). Stop conditions #1/#5/#6 held. An honest negative
+result: duplicates what `explore`/`zoom-out` + the auto-injected `AGENTS.md`
+already do. Record: `.opencode/artifacts/repo-index/`.
+
 ## Deferred
 
 - `plugin/sdk/` until two plugins share a contract
