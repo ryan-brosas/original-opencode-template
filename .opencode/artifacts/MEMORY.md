@@ -76,6 +76,13 @@ Updated: 2026-07-08
 - **Rationale:** Root AGENTS.md is valuable orientation fresh sessions lacked (verified: my own system prompt carried `.opencode/AGENTS.md` but NOT root AGENTS.md). Export mechanism fixes recurring template drift without hand-editing (respects "don't hand-edit template/" rule). plugin/sdk/ stays deferred per Kernel #2 (no speculative abstractions).
 - **Consequences:** Requires opencode restart for `instructions[]` to take effect (verify after restart: root AGENTS.md content should appear in fresh sessions; `.opencode/AGENTS.md` continues to load natively). Reconcile template/ anytime with `bash .opencode/tool/sync-template.sh`. `verify.sh` green; `template/` diff clean (only working-state active-only).
 
+### [2026-07-22] Auto ship on completion — commit + push after verify
+
+- **Context:** User wants commit+push to happen automatically after each completed artifact, not gated behind manual approval each time. Chose scope = "any completed artifact" (build agent judges completion), push frequency = "push every commit" (local/remote stay in sync).
+- **Decision:** Build agent (`agent/build.md`) commits + pushes after `bash .opencode/tool/verify.sh` exits 0 on a completed work unit. Stage changed paths only (never `git add .`/`git add -A`), conventional message, push to `origin`. `git commit`/`git push` flipped ask→allow in build.md frontmatter; `--force` denied (added `git push*--force*: deny`); `--no-verify` already denied. `/ship` Close section rewritten — removed "Mark complete?" question + "never automatic" claim; now references the standing rule. `/fix` untouched (standing rule covers it).
+- **Rationale:** Reduces friction the user hit repeatedly (manual "commit and push" each artifact). verify.sh is the gate (Kernel #4); subagents stay read-only (can't write/commit). Force-push + hook-bypass still denied for safety.
+- **Consequences:** Requires opencode restart for the ask→allow permission change to take effect in enforcement; until then commit/push still prompt (ask). After restart, commit+push flows without prompts on completed+verified work.
+
 ---
 
 ## Patterns

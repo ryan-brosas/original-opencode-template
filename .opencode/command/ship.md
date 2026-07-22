@@ -6,7 +6,7 @@ agent: build
 # Ship: $ARGUMENTS
 
 Execute a change with one linear loop: **localize → patch → verify → evidence**.
-You are the sole writer. No waves, no parallel writer fan-out, no mandatory commits.
+You are the sole writer. No waves, no parallel writer fan-out.
 
 ## Load Skills
 
@@ -119,9 +119,7 @@ If any goal fails Level 2 or 3, fix and re-verify before claiming done.
 
 ## Close
 
-Ask the user before closing — `question({ questions: [{ header: "Close", question: "Verify passed, evidence recorded. Mark complete?", options: [{ label: "Yes (Recommended)" }, { label: "No, keep working" }] }] })`.
-
-Commit and push are **never automatic** — `git commit`/`git push` are gated behind approval. Ask before committing; never run `git add .`.
+Verify passed and evidence recorded. Commit and push the work per your standing **Ship on Completion** rule: stage the changed paths only (never `git add .`), commit with a conventional message, push to `origin`. Then report done.
 
 ## Output
 

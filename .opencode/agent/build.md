@@ -5,8 +5,9 @@ temperature: 0.1
 permission:
   bash:
     "*": allow
-    "git push*": ask
-    "git commit*": ask
+    "git push*": allow
+    "git push*--force*": deny
+    "git commit*": allow
     "git reset*": ask
     "rm *": deny
     "rm -rf*": deny
@@ -62,3 +63,8 @@ Before delegating: can direct tools solve this? Can an artifact replace state? W
 
 ## Quality Loop
 For high-risk features: implement → run **one** read-only `review` subagent (spec + current diff) → fix critical findings inline → re-verify. Architecture findings → stop, present options to user. Routine changes skip review. No iterative score loops, no `review-state.json` — one pass, fix what's actionable, move on.
+
+## Ship on Completion
+After `bash .opencode/tool/verify.sh` exits 0 on a **completed work unit** (not a mid-task checkpoint): stage the specific paths you changed (`git add <paths>`, never `git add .`/`git add -A`), commit with a conventional message (`feat:`/`fix:`/`docs:`/`chore:` + one-line summary), and push to `origin`. Push every commit — keep local and remote in sync.
+
+Skip commit+push only when: the work is incomplete or in-progress, verify fails, or the user explicitly says to hold. Never force-push main (`--force` is denied in your permission block); never bypass hooks (`--no-verify` is denied).
