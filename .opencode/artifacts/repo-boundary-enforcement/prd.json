@@ -1,136 +1,203 @@
 {
   "slug": "repo-boundary-enforcement",
-  "title": "Repo-Boundary Enforcement — Defense-in-Depth",
+  "title": "Repo-Boundary Enforcement — Fail-Closed Filesystem Sandbox",
   "created": "2026-07-22",
-  "status": "ready",
-  "goal": "Layered enforcement so agents cannot drift outside the workspace: a static invariant (structural-check asserts external_directory == deny, preventing config regression) plus a runtime tool.execute.before plugin (repo-boundary.ts) that denies path-bearing tools and bash commands whose resolved path escapes {directory,worktree}, closing the scout-found bypass vectors (git -C, ls, subprocess, symlinks, last-match-wins allow).",
+  "reconciled": "2026-07-22 (supersedes initial Option-C command-scanner design; bubblewrap sandbox chosen)",
+  "status": "in_progress",
+  "goal": "Run opencode + descendants inside a fail-closed Linux bubblewrap filesystem sandbox whose empty mount namespace exposes only an explicit RO runtime substrate + minimal synthetic /etc and mounts the active workspace RW, excluding sibling repos/folders; defended in depth by the already-shipped static invariant (external_directory=deny, 33be136) and a startup liveness-guard plugin. No command-string scanner (rejected: cannot be authoritative).",
   "depends_on": [],
   "parallel": false,
   "success_criteria": [
     {
       "id": "sc1",
-      "check": "Static invariant exists and fails on regression (structural-check Check 7 asserts external_directory == deny; exits 1 on ask/allow/missing)",
-      "verify": "set external_directory=ask, bash .opencode/tool/structural-check.sh (exit 1); restore deny, re-run (exit 0)"
+      "check": "Static invariant DONE (33be136): structural-check Check 7 asserts external_directory==deny; fails on ask/allow/missing-field/missing-file/malformed/array/bun-error",
+      "verify": "bash .opencode/tool/repo-boundary-invariant-test.sh (exit 0)",
+      "status": "done",
+      "shipped_commit": "33be136"
     },
     {
       "id": "sc2",
-      "check": "Plugin exists, bounded (<=300 lines), SDK-only import",
-      "verify": "test -f .opencode/plugin/repo-boundary.ts && wc -l .opencode/plugin/repo-boundary.ts (<=300) && rg -n '^import' .opencode/plugin/repo-boundary.ts (SDK only)"
+      "check": "Launcher is fail-closed: opencode-sandbox.sh exits nonzero and runs no opencode child when bwrap missing/broken, userns disabled, unsafe mount path, or preflight rejects the workspace (broad roots, linked worktrees, non-git, descendant mountpoints, sockets/FIFOs/devices, st_nlink>1, symlinked state)",
+      "verify": "bash .opencode/tool/opencode-sandbox-test.sh (exit 0)"
     },
     {
       "id": "sc3",
-      "check": "Plugin denies escapes and allows in-repo (>=6 bun test cases: in-repo pass, ../ escape throw, symlink-outside throw, git -C ../ throw, ls ../ throw, in-repo bash pass)",
-      "verify": "bun .opencode/plugin/repo-boundary.test.ts (exit 0)"
+      "check": "Launcher contains: real bwrap run — in-workspace read/write + git status pass; fixture-sibling ls/git -C fail; python direct/computed/subprocess read fail; workspace->sibling symlink fail; outside write leaves host sentinel unchanged",
+      "verify": "bash .opencode/tool/opencode-sandbox-test.sh (real-bwrap section, exit 0)"
     },
     {
       "id": "sc4",
-      "check": "Plugin does not false-deny legitimate work (verify.sh runs with plugin live, exits 0)",
-      "verify": "bash .opencode/tool/verify.sh (exit 0)"
+      "check": "Liveness guard detects mislaunch: repo-boundary.ts throws on missing/malformed marker or directory!==expected root; initializes when both match",
+      "verify": "bun test .opencode/tool/repo-boundary/repo-boundary.test.ts (exit 0)"
     },
     {
       "id": "sc5",
-      "check": "Config cannot silently regress (static check + verify together catch a committed ask)",
-      "verify": "covered by sc1 + sc4"
+      "check": "No sandbox state ships: .sandbox-state/ gitignored, sync-template.sh excludes it, absent from .template-manifest.json; launcher/tests/plugin ship",
+      "verify": "grep -q sandbox-state .opencode/.gitignore && sync-template.sh run && ! grep -q sandbox-state .opencode/.template-manifest.json"
     },
     {
       "id": "sc6",
-      "check": "Decision recorded in MEMORY.md + bead closed (.active removed)",
+      "check": "Decision recorded in MEMORY.md + bead closed (.active removed) after manual-activation closeout",
       "verify": "rg -n 'repo-boundary enforcement' .opencode/artifacts/MEMORY.md && test ! -e .opencode/artifacts/.active"
     }
   ],
-  "tasks": [
+  "plans": [
     {
-      "id": "t1",
-      "category": "feature",
-      "title": "Static invariant — structural-check Check 7 (external_directory == deny)",
-      "end_state": "structural-check.sh has a Check 7 asserting .opencode/opencode.json root permission.external_directory == deny via bun/jq; exits 1 on ask/allow/missing; check counter 6->7; verify.sh green.",
-      "depends_on": [],
-      "parallel": false,
-      "conflicts_with": [],
-      "files": [".opencode/tool/structural-check.sh"],
-      "verify": "bash .opencode/tool/structural-check.sh (exit 0); set external_directory=ask, re-run (exit 1); restore deny; bash .opencode/tool/verify.sh (exit 0)"
+      "id": "plan01",
+      "title": "Contract reconciliation + runtime launcher + liveness guard",
+      "tasks": [
+        {
+          "id": "p01t1",
+          "category": "governance",
+          "title": "Reconcile spec/prd/research to supersede the rejected command-scanner; rewrite around the bubblewrap launcher; create plan.md + progress.md",
+          "end_state": "spec.md/prd.json/research.md describe the fail-closed bubblewrap launcher as authoritative; static invariant marked DONE (33be136); liveness guard is a mislaunch detector not a path scanner; no command-string scanner claims; plan.md + progress.md exist",
+          "depends_on": [],
+          "parallel": false,
+          "conflicts_with": [],
+          "files": [
+            ".opencode/artifacts/repo-boundary-enforcement/spec.md",
+            ".opencode/artifacts/repo-boundary-enforcement/prd.json",
+            ".opencode/artifacts/repo-boundary-enforcement/plan.md",
+            ".opencode/artifacts/repo-boundary-enforcement/progress.md",
+            ".opencode/artifacts/repo-boundary-enforcement-research.md"
+          ],
+          "verify": "rg -n 'bubblewrap|fail-closed' spec.md && rg -n '33be136' spec.md && ! rg -n 'authoritative wall' spec.md && bun -e 'JSON.parse(require(\"fs\").readFileSync(\"prd.json\"))'"
+        },
+        {
+          "id": "p01t2",
+          "category": "feature",
+          "title": "Launcher TDD: opencode-sandbox-test.sh RED then opencode-sandbox.sh GREEN",
+          "end_state": "Fail-closed bubblewrap launcher ships: trusted external config (owner-controlled, not group-writable, parsed without eval); --clearenv + terminal/locale + explicit provider/proxy vars; root discovery with GIT_* removed; require normal-checkout .git dir; reject broad roots/linked-worktrees/non-git/descendant-mountpoints/sockets/FIFOs/devices/st_nlink>1/symlinked-state; .sandbox-state/{config,cache,data,state} umask 077 root 0700; empty namespace (--unshare-all --share-net --disable-userns --new-session --die-with-parent --clearenv); /proc /dev tmpfs /tmp /run sandbox-home; workspace RW same canonical path; /usr + system runtime RO; synthetic minimal /etc; exact configured opencode/bun executable files; containment capability probe before launch; host-side unmounted canary; never fall back to raw opencode",
+          "depends_on": ["p01t1"],
+          "parallel": false,
+          "conflicts_with": [],
+          "files": [
+            ".opencode/tool/opencode-sandbox.sh",
+            ".opencode/tool/opencode-sandbox-test.sh",
+            ".opencode/tool/opencode-sandbox.conf.example"
+          ],
+          "verify": "bash .opencode/tool/opencode-sandbox-test.sh (exit 0)"
+        },
+        {
+          "id": "p01t3",
+          "category": "feature",
+          "title": "Liveness-guard TDD: repo-boundary.test.ts RED then repo-boundary.ts GREEN",
+          "end_state": "Startup plugin proves marker present + canonical directory===expected root; throws on missing/malformed marker or root mismatch; initializes when both match. Test dynamically checks the plugin before import (RED is behavior, not compile). Fresh-process test proves raw startup exits nonzero + wrapped startup loads. If OpenCode swallows plugin factory throws, STOP — do not claim fail-closed from the plugin.",
+          "depends_on": ["p01t2"],
+          "parallel": false,
+          "conflicts_with": [],
+          "files": [
+            ".opencode/plugin/repo-boundary.ts",
+            ".opencode/tool/repo-boundary/repo-boundary.test.ts"
+          ],
+          "verify": "bun test .opencode/tool/repo-boundary/repo-boundary.test.ts (exit 0)"
+        }
+      ]
     },
     {
-      "id": "t2",
-      "category": "feature",
-      "title": "Runtime repo-boundary plugin (tool.execute.before containment guard)",
-      "end_state": ".opencode/plugin/repo-boundary.ts (<=300 lines, SDK-only) mirrors guard.ts: tool.execute.before reads {directory,worktree} from ctx, resolves path args (read/edit/glob/grep) + bash command tokens against directory with realpath, throws on escape, returns {args} unchanged otherwise; typecheck clean; verify.sh green (no false-deny).",
-      "depends_on": ["t1"],
-      "parallel": false,
-      "conflicts_with": [],
-      "files": [".opencode/plugin/repo-boundary.ts"],
-      "verify": "wc -l .opencode/plugin/repo-boundary.ts (<=300) && rg -n '^import' .opencode/plugin/repo-boundary.ts (SDK only) && .opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json && bash .opencode/tool/verify.sh (exit 0)"
-    },
-    {
-      "id": "t3",
-      "category": "test",
-      "title": "Plugin behavioral tests (bun, >=6 cases with real temp dir + symlink)",
-      "end_state": ".opencode/plugin/repo-boundary.test.ts passes: in-repo read/edit/glob/grep pass; ../sibling escape throws; symlink-to-outside throws; git -C ../sibling throws; ls ../sibling throws; cat in-repo-file passes. Uses a real temp dir + real symlink (no mocking of realpath).",
-      "depends_on": ["t2"],
-      "parallel": false,
-      "conflicts_with": [],
-      "files": [".opencode/plugin/repo-boundary.test.ts"],
-      "verify": "bun .opencode/plugin/repo-boundary.test.ts (exit 0)"
-    },
-    {
-      "id": "t4",
-      "category": "governance",
-      "title": "Docs + closeout (AGENTS.md, README.md, MEMORY.md, roadmap.md, state.md, .active removed)",
-      "end_state": "AGENTS.md + .opencode/README.md plugin inventories updated; MEMORY.md decision appended (Option C, what it catches, residual accepted bypass); roadmap.md experiment->shipped; state.md active+complete; verify.sh + plugin tests green; committed+pushed; .active git rm'd.",
-      "depends_on": ["t1", "t2", "t3"],
-      "parallel": false,
-      "conflicts_with": [],
-      "files": [
-        "AGENTS.md",
-        ".opencode/README.md",
-        ".opencode/artifacts/MEMORY.md",
-        ".opencode/roadmap.md",
-        ".opencode/state.md",
-        ".opencode/artifacts/repo-boundary-enforcement/spec.md",
-        ".opencode/artifacts/repo-boundary-enforcement/prd.json",
-        ".opencode/artifacts/repo-boundary-enforcement/progress.md",
-        ".opencode/artifacts/.active"
-      ],
-      "verify": "bash .opencode/tool/verify.sh (exit 0) && bun .opencode/plugin/repo-boundary.test.ts (exit 0) && rg -n 'repo-boundary enforcement' .opencode/artifacts/MEMORY.md && test ! -e .opencode/artifacts/.active"
+      "id": "plan02",
+      "title": "Lock invariant + export without state + manual activation closeout",
+      "tasks": [
+        {
+          "id": "p02t1",
+          "category": "feature",
+          "title": "Static invariants + verification wiring (structural-check Check 7 + verify.sh bwrap integration; missing bwrap = hard FAIL not SKIP)",
+          "end_state": "structural-check Check 7 asserts external_directory==deny (DONE 33be136); verify.sh runs the invariant test + real-bwrap integration; outside-sandbox=real bwrap, inside-sandbox=root/mount/canary liveness (no nested bwrap)",
+          "depends_on": [],
+          "parallel": false,
+          "conflicts_with": [],
+          "files": [
+            ".opencode/tool/structural-check.sh",
+            ".opencode/tool/repo-boundary-invariant-test.sh",
+            ".opencode/tool/verify.sh"
+          ],
+          "verify": "bash .opencode/tool/verify.sh (exit 0) && bash .opencode/tool/repo-boundary-invariant-test.sh (exit 0)",
+          "status": "partial_done",
+          "shipped_commit": "33be136",
+          "note": "Check 7 + invariant test DONE; verify.sh bwrap integration pending Plan 01 Task 2"
+        },
+        {
+          "id": "p02t2",
+          "category": "feature",
+          "title": "Package without exporting state (export assertion RED then sync-template GREEN)",
+          "end_state": "Launcher/config/plugin/tests ship; .sandbox-state/ never in template/manifest; launcher mode survives export; docs explain trusted install/Linux-only/network+secret limits/normal-checkout/sandbox-local provider+git",
+          "depends_on": ["p01t2", "p01t3"],
+          "parallel": false,
+          "conflicts_with": [],
+          "files": [
+            ".opencode/.gitignore",
+            ".opencode/tool/sync-template.sh",
+            ".opencode/.template-manifest.json",
+            ".opencode/README.md",
+            ".opencode/tech-stack.md",
+            "AGENTS.md",
+            ".opencode/command/verify.md",
+            ".opencode/plugin/README.md"
+          ],
+          "verify": "grep -q sandbox-state .opencode/.gitignore && bash .opencode/tool/sync-template.sh && ! grep -q sandbox-state .opencode/.template-manifest.json && bash .opencode/tool/verify.sh (exit 0)"
+        },
+        {
+          "id": "p02t3",
+          "category": "governance",
+          "title": "Manual activation + evidence-based closeout (USER checkpoint)",
+          "end_state": "Commit release candidate; USER manually installs wrapper (install -Dm0555 .opencode/tool/opencode-sandbox.sh ~/.local/bin/opencode-sandbox + install -Dm0600 .opencode/tool/opencode-sandbox.conf.example ~/.config/opencode-sandbox/config); user configures executable paths + provider-allowlist + sandbox-local git identity; quit+restart via wrapper; in fresh session run opencode-sandbox-test.sh --active + verify.sh; ONLY then record evidence in MEMORY/roadmap/state, delete .active, commit closeout",
+          "depends_on": ["p02t2"],
+          "parallel": false,
+          "conflicts_with": [],
+          "files": [
+            ".opencode/artifacts/MEMORY.md",
+            ".opencode/roadmap.md",
+            ".opencode/state.md",
+            ".opencode/artifacts/repo-boundary-enforcement/progress.md",
+            ".opencode/artifacts/.active"
+          ],
+          "verify": "USER runs opencode-sandbox-test.sh --active (exit 0) in a fresh wrapped session; then rg -n 'repo-boundary enforcement' .opencode/artifacts/MEMORY.md && test ! -e .opencode/artifacts/.active",
+          "note": "Hard manual checkpoint — cannot complete autonomously"
+        }
+      ]
     }
   ],
   "open_questions": [
     {
       "id": "oq1",
-      "question": "Bash-scan granularity: token-scan vs targeted denylist (git -C/ls/subprocess)",
+      "question": "Exact opencode/bun executable paths to bind (not arbitrary PATH dirs)",
       "status": "open",
-      "resolution": "Resolve in Task 2: token-scan (simplest, catches all vectors); denylist is brittle"
+      "resolution": "Resolve in Plan 01 Task 2"
     },
     {
       "id": "oq2",
-      "question": "Symlink policy: resolve+deny escape (strict) vs leave to opencode lexical",
+      "question": "Sandbox-local provider auth + git identity bootstrap (import vs in-sandbox /connect)",
       "status": "open",
-      "resolution": "Resolve in Task 2: resolve+deny escape with explicit allow-rule escape hatch"
+      "resolution": "Resolve in Plan 02 Task 2/3 with the user"
     },
     {
       "id": "oq3",
-      "question": "Exact tool arg shapes (read/edit/glob/grep/bash)",
+      "question": "Does 'git passes' include commit + push (HTTPS origin, no local identity today)?",
       "status": "open",
-      "resolution": "Resolve in Task 2: verify against SDK Tool type / existing plugin usage"
+      "resolution": "Resolve in Plan 02 Task 3"
     },
     {
       "id": "oq4",
-      "question": "Does .opencode/README.md list plugins? (Task 4 doc edit)",
+      "question": "webclaw-mcp executable closure without binding arbitrary home/PATH dirs",
       "status": "open",
-      "resolution": "Resolve in Task 4: grep README for plugin inventory"
+      "resolution": "Resolve in Plan 01 Task 2"
     }
   ],
   "stop_conditions": [
-    "Plugin cannot reliably extract path args from bash (token-scan too brittle) -> drop plugin (t2/t3), keep static invariant (t1)",
-    "Plugin false-denies legitimate in-repo work after testing (sc4 fails) -> drop plugin, keep static check, document negative result",
-    "opencode upstream fixes bypasses and pins in @opencode-ai/plugin@1.18.4 -> re-evaluate plugin; static invariant stays regardless"
+    "Bubblewrap cannot establish working empty-namespace containment on this host (kernel/userns disabled and unfixable) -> keep static invariant; document; recommend rootless Podman",
+    "Launcher cannot stay fail-closed without a fallback that defeats the purpose -> keep static invariant; document negative result",
+    "Liveness guard cannot prove a thrown factory aborts opencode startup -> drop guard (keep launcher + invariant), do not claim fail-closed from the plugin",
+    "Containment tests cannot be made deterministic in isolated fixtures -> keep static invariant; document"
   ],
   "non_goals": [
-    "A permission.ask plugin hook (redundant under deny + locked config)",
-    "Permission-event observability/logging (deferred until an audit reason exists)",
-    "Rewriting or monkey-patching opencode's own external_directory implementation",
-    "Network firewalling, sandboxing beyond path containment, or a separate process jail",
+    "A tool.execute.before command-string path scanner (rejected design — cannot be authoritative)",
+    "Network isolation / localhost firewalling (network shared)",
+    "Secret isolation (credentials readable by same-UID descendants)",
+    "Malicious-repo / malicious-model-code threat (workspace-owned launcher is not a durable trust anchor; V1 = accidental path drift unless immutable external wrapper installed)",
+    "Linked-worktree support in V1 (fail closed; normal checkouts only; .git pointer not trusted)",
+    "Auto-install of bubblewrap (ask the user if unavailable)",
+    "A permission.ask plugin hook or permission-event observability (redundant under deny + locked config)",
     "Modifying upstream opencode or bumping the pinned SDK",
-    "A general bash AST parser (token-scan; accept residual subprocess-in-literal bypass)"
+    "Cross-platform support (Linux + bubblewrap only; rootless Podman/container is the documented alternative)"
   ]
 }

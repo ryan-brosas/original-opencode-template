@@ -2,7 +2,8 @@
 
 **Slug:** repo-boundary-enforcement
 **Created:** 2026-07-22
-**Status:** Research complete; awaiting design decision before `/create`
+**Status:** Research complete; Option C superseded by Addendum (bubblewrap sandbox chosen)
+**Addendum:** 2026-07-22 — the Option C recommendation below (plugin as authoritative wall) is WRONG; see the Addendum at the end of this file.
 **Researchers:** self (grounding + synthesis), scout subagent (opencode source/issues)
 **Trigger:** `external_directory: "ask"→"deny"` shipped (`4ce663b`) after the repo-index proof gate drifted into sibling repos. User wants defense-in-depth so it can't happen again — "do a deep research how we can enforce this."
 
@@ -111,3 +112,50 @@ Option C + log `permission.asked`/`replied` events to a drift journal.
 - SDK types: `.opencode/node_modules/@opencode-ai/plugin/dist/index.d.ts:225-258`
 - Our surface: `.opencode/tool/verify.sh:28-39`, `.opencode/tool/structural-check.sh:95-148`, `.opencode/plugin/skill-mine-telemetry.ts:41-64`
 - Comparison: Anthropic Claude Code Security docs; Aider README
+
+---
+
+## Addendum (2026-07-22) — Option C plugin-as-wall is WRONG; bubblewrap sandbox chosen
+
+### What was wrong
+
+The original Recommendation (Option C, above) claimed the `tool.execute.before` plugin is "the authoritative wall" that "closes the bash/symlink/subprocess bypass vectors at runtime, in-session, for every tool call." A read-only architecture review (`review` subagent, confidence 0.96–1.0) proved this cannot be authoritative:
+
+1. **Subprocess/computed-path bypass is irreducible for a command-string scanner.** `python -c 'open("../sibling/x")'`, an in-repo script accessing a sibling, `P=../sibling; ls "$P"`, command substitutions, and helper binaries expose no reliable path token to the hook — the hook sees only the top-level command string, not subprocess filesystem operations. The original spec (line 52) even acknowledged this and "accepted the residual subprocess-in-string-literal bypass," which directly contradicts its "authoritative wall" claim.
+2. **Coverage gaps.** The proposed dispatcher covered only `read/edit/glob/grep` + bash command text, omitting `write.filePath`, `bash.workdir`, `lsp.filePath`, and paths embedded in `apply_patch.patchText` — so a write/patch through an in-repo symlink retained the exact symlink escape this feature meant to close.
+3. **`realpathSync` cannot validate new write targets** (throws on nonexistent paths; lexical fallback misses new files under symlinked dirs).
+4. **`{directory, worktree}` is not a defined boundary** — and opencode uses `worktree="/"` for non-git projects, which a union policy would admit as "the whole filesystem."
+5. **A plugin hook is not a containment boundary.** `tool.execute.before` mutates `output.args` and returns `void`; it runs sequentially, so a later argument-mutating hook can invalidate an earlier check; and the host may swallow plugin factory errors. It is a policy gate, not an OS jail.
+
+### Corrected decision (user-selected)
+
+Strict **bubblewrap** (rootless Linux mount-namespace sandbox) is the authoritative boundary. The launcher starts opencode + descendants inside an empty mount namespace exposing only an explicit RO runtime substrate + minimal synthetic `/etc` and mounting the active workspace RW; sibling repos/folders are absent from the namespace. Fail-closed: no fallback to raw opencode. The static invariant (`external_directory: "deny"`, shipped `33be136`) stays as defense-in-depth; the startup plugin becomes a **liveness/mislaunch detector** (marker + canonical root), NOT a path scanner.
+
+### Corrected must-have truths
+
+1. Boundary applies only to processes started by the trusted launcher; the marker/plugin are NOT security boundaries.
+2. Persistent host writes = workspace only; hard links + nested mounts under the workspace are rejected (write-through to an outside inode is an escape).
+3. Host reads = explicit RO runtime substrate + minimal synthetic `/etc`, never the whole host config (wholesale `/etc` leaks files + `/etc/opencode` config override).
+4. Network/localhost/inherited stdio/optional SSH-agent remain shared.
+5. Provider/git credentials injected are readable by same-UID descendants; secret isolation is a NON-GOAL.
+6. RW Git common-dir can affect shared refs/hooks/config/objects/sibling-worktree metadata.
+7. Unsupported Linux/bwrap/userns environments FAIL CLOSED; no fallback, no auto-install.
+
+**Trust anchor:** the installed wrapper lives OUTSIDE the writable workspace; the repo copy is only the installable source. V1 scope = **accidental path drift** (a workspace-owned launcher is not durable against malicious repo/model code unless an immutable external wrapper is installed).
+
+### Why bubblewrap over the alternatives
+
+- **bubblewrap** — rootless, user-namespace, mount-namespace; bind only selected paths; siblings simply never mounted. Lowest setup cost for the strongest structural guarantee.
+- **Landlock** — kernel file-access denial but not a mount namespace; some syscalls unrestricted. Not chosen.
+- **nsjail / firejail** — namespace + bind-mount + seccomp; viable but heavier.
+- **Podman/Docker/devcontainer** — viable container alternative (documented as the cross-platform / stronger-secret-isolation fallback).
+
+### What stays from the original research
+
+The scout source audit (lexical `external_directory`, the bypass-vector table, `findLast()` last-match-wins, the SDK hook facts, the 6-layer surface map) is all still accurate and load-bearing. Only the **recommendation** (Option C plugin-as-wall) is superseded. The static invariant (Option A / layer L3) is shipped and retained regardless.
+
+### Sources for the correction
+
+- Architecture review subagent (read-only): local SDK types, opencode 1.18.4 source, pinned docs — findings with file:line + confidence.
+- Bubblewrap: `containers/bubblewrap` README (`--bind`/`--ro-bind`/`--unshare-*`/`--share-net`/`--new-session`/`--die-with-parent`/`--clearenv`; caller args define policy).
+- This host's hard gates confirmed: `/usr/bin/bwrap` 0.9.0, opencode at `/home/ryan/.local/bin/opencode`, normal git checkout.
