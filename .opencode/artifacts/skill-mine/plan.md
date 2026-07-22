@@ -1,5 +1,7 @@
 # Skill-Mine Full Lifecycle — Implementation Plan
 
+**Status:** Complete (all 7 plans shipped 2026-07-22)
+
 > **For the build agent:** implement task-by-task. You are the sole writer.
 > Treat the entire `skill-mine` artifact as one work unit — no interim
 > auto-ship commit until the final verification battery passes (Kernel #4 gate).

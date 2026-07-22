@@ -11,7 +11,7 @@ This directory contains project-specific OpenCode configuration: agents, command
 ├── dcp.jsonc                # Dynamic context pruning settings
 ├── QUALITY.md               # Quality grades per domain (graded by /gc)
 ├── agent/                   # Agent definitions (7)
-├── command/                 # Slash commands (9 — includes /gc, /init)
+├── command/                 # Slash commands (10 — includes /gc, /init, /skill-mine)
 ├── artifacts/               # Session artifacts, memory, plans
 ├── skill/                   # Skill library used by agents/commands
 ├── tool/                    # Custom tools (structural-check.sh, etc.)
@@ -75,6 +75,7 @@ Current plugin source files in `.opencode/plugin/`:
 - `diagnostics.ts` - post-edit diagnostics auto-injection (type/lint/slop) + on-demand `diagnostics` tool
 - `guard.ts` - safety guardrails (pipe-to-shell, commit message format)
 - `skill-mcp.ts` - bridge for skill-scoped MCP servers/tools
+- `skill-mine-telemetry.ts` - passive observer for skill invocations (skill-mine usage telemetry)
 
 Memory is file-based in `.opencode/artifacts/MEMORY.md` (grep/read/edit, no DB).
 
@@ -112,6 +113,7 @@ New workflows: add a `.md` file to `.opencode/workflows/` following the same str
 | `/fix` | Fix a bug | build |
 | `/audit` | Codebase pattern audit | review |
 | `/gc` | Run garbage collection (Fallow + quality grading) | build |
+| `/skill-mine` | Mine a verified work unit into a reusable skill (distill, evaluate, promote) | build |
 
 ## Architecture Enforcement
 
@@ -157,6 +159,9 @@ npx oxfmt <file>
 
 # Typecheck gate regression test (isolated fixtures)
 bash .opencode/tool/verify-typecheck-test.sh
+
+# Skill-mine isolated lifecycle test (temp repo + bare remote)
+bash .opencode/tool/skill-mine-integration-test.sh
 ```
 
 No `npm run` scripts exist (`package.json` has none). Semantic typecheck runs via `verify.sh` using the pinned local `.opencode/node_modules/.bin/tsc` (`typescript`@7.0.2 is a devDependency); bare `npx tsc` is not used.

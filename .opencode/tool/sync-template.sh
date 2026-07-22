@@ -4,9 +4,12 @@
 # Copies every shippable file from .opencode/ to template/.opencode/, removes template
 # files that no longer ship, and regenerates .template-manifest.json with fresh SHA-256
 # hashes. Working-state files (node_modules, .fallow, .fallowrc.json, bun.lock,
-# .gitignore, roadmap.md, state.md, tech-stack.md, and the manifest itself) are
-# excluded. package.json + package-lock.json ship so consumers can run
+# roadmap.md, state.md, tech-stack.md, and the manifest itself) are excluded.
+# package.json + package-lock.json ship so consumers can run
 # `npm ci --prefix .opencode` to enable the semantic typecheck (verify.sh Check 4/5).
+#
+# The nested .gitignore ships so consumers inherit the .skill-mine/ ignore rule
+# (skill-mine runtime state is private and must never be committed).
 #
 # Skill-mine scope boundary: `.skill-mine` (ignored runtime state) and
 # `project-skills` (project-scoped mined skills) never ship — only the template
@@ -42,7 +45,6 @@ EXCLUDES=(
   "node_modules"
   ".fallow"
   ".fallowrc.json"
-  ".gitignore"
   "bun.lock"
   "roadmap.md"
   "state.md"

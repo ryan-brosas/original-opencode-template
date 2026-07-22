@@ -370,3 +370,35 @@ call does not reach `tool.execute.after`; use `usage record <name>` manually.
 - `git diff --check` → exit 0
 
 **Status:** Plan 6 complete + shipped. Plan 7 pending.
+
+## 2026-07-22 — Shipped (`/ship skill-mine` Plan 7: Documentation, Export + Closeout)
+
+Final plan. All 7 child plans complete.
+
+**Task 7.1 — User-facing documentation and export:**
+- `AGENTS.md`: Layout line — added `skill-mine-telemetry` to plugin list, `skill-mine/` + `sync-template.sh` to tool list, `skill-mine` to command list; Commands table — added skill-mine CLI + integration-test rows; Gotchas — added skill-mine runtime-state + restart note.
+- `.opencode/README.md`: command count 9 → 10 (+`/skill-mine`); Plugins section — added `skill-mine-telemetry.ts`; Commands table — added `/skill-mine` row; Verification Baseline — added `skill-mine-integration-test.sh`.
+- `.opencode/command/skill-mine.md`: already comprehensive from Plans 3-6 (lifecycle, privacy, stop conditions, telemetry); no changes needed.
+- `.opencode/tool/sync-template.sh`: **consumer `.skill-mine/` ignore hygiene (deferred Plan 2 review P2 fix)** — removed `.gitignore` from EXCLUDES so the nested `.opencode/.gitignore` ships to consumers (carries the `.skill-mine/` ignore rule); updated header comment.
+- Regenerated template: 623 files (was 622; +`.gitignore`).
+- Assertions: `template/.opencode/.gitignore` present (contains `.skill-mine/`); `.skill-mine/` + `project-skills/` absent; `skill-mine.json` + `tool/skill-mine/` present; consumer `git check-ignore .opencode/.skill-mine/traces/test` → ignored (confirmed).
+
+**Task 7.2 — Durable project state:**
+- `.opencode/artifacts/MEMORY.md`: appended `[2026-07-22] Skill-mine — self-extending governed skill lifecycle` decision (Context/Decision/Rationale/Consequences — 7 plans, 132 tests, telemetry outcome pending, next evidence threshold for automation).
+- `.opencode/roadmap.md`: added skill-mine automation deferral to the Deferred section (auto-capture/auto-template-promotion/usage-based-auto-retirement — each needs proven evidence first).
+- `.opencode/state.md`: Active Plan → "skill-mine COMPLETE"; added Plan 7 Recent Completed Work row; item 24 checked; Session Handoff rewritten (skill-mine complete; live hook proof is the user step; optional follow-ups: mine first real work unit, strictness migration, plugin/sdk).
+
+**Task 7.3 — Finalize the artifact:**
+- `spec.md` status → Complete; `prd.json` status → complete; `plan.md` status → Complete.
+- `.opencode/artifacts/.active` removed (feature complete).
+
+**Final Verification Battery (all exit 0):**
+- `bun test ./.opencode/tool/skill-mine/` → 132 pass, 0 fail (256 expect calls)
+- `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` → exit 0
+- `bash .opencode/tool/structural-check.sh` → exit 0
+- `npm_config_offline=true bash .opencode/tool/verify.sh` → exit 0 (5/5 PASS)
+- `bash .opencode/tool/skill-mine-integration-test.sh` → PASSED (fresh-process loader confirmed, no leaks)
+- `bash .opencode/tool/sync-template.sh` → 623 files; `.skill-mine/` + `project-skills/` absent, `.gitignore` ships, `tool/skill-mine/` + `command/skill-mine.md` + `skill-mine.json` + telemetry plugin ship
+- `git diff --check` → exit 0
+
+**Status:** skill-mine COMPLETE. All 7 plans shipped.

@@ -116,7 +116,8 @@ do not restore every-turn injection.
 ## Deferred
 
 - `plugin/sdk/` until two plugins share a contract
-- Strictness migration (`strict:false` → `true`) — non-goal of the semantic-typecheck gate
+- Strictness migration (`strict:false` → `true`) — non-goal of the semantic typecheck gate
+- Skill-mine auto-capture (needs a trustworthy SDK outcome-bearing event) / auto-template-promotion (needs more cross-project evidence) / usage-based auto-retirement (needs proven telemetry)
 - Vector/graph memory; always-on repo maps; heavy telemetry; benchmark infra
 - Automated `.opencode` ↔ `template/.opencode` sync
 - Default multi-agent swarms

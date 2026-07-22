@@ -2,7 +2,7 @@
 
 **Slug:** skill-mine
 **Created:** 2026-07-22
-**Status:** Planned (see `plan.md` — authorizes execution)
+**Status:** Complete (all 7 plans shipped 2026-07-22)
 
 > **Authoritative execution spec:** `.opencode/artifacts/skill-mine/plan.md`.
 > The PRD body below is the original `/create` record and is **superseded** by

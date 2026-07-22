@@ -12,9 +12,9 @@ This repo IS the OpenCode template/configuration. Real code lives in `.opencode/
 ## Layout (code; full map in `.opencode/README.md`)
 ```
 .opencode/
-├── plugin/    TS plugins: diagnostics, skill-mcp, guard
-├── tool/      agent tools: context7.ts, grepsearch.ts, structural-check.sh
-├── command/   slash commands (md): init, create, plan, ship, verify, fix, audit, research, gc
+├── plugin/    TS plugins: diagnostics, skill-mcp, guard, skill-mine-telemetry
+├── tool/      agent tools: context7.ts, grepsearch.ts, structural-check.sh, verify.sh, skill-mine/, sync-template.sh
+├── command/   slash commands (md): init, create, plan, ship, verify, fix, audit, research, gc, skill-mine
 ├── agent/     agent definitions (md): build, plan, review, explore, scout, general, vision
 ├── workflows/ orchestration plans (md): deep-research, batch-implement, audit-pattern, ...
 ├── skill/     skill library (SKILL.md + JS helpers, ~67 skills)
@@ -30,6 +30,8 @@ This repo IS the OpenCode template/configuration. Real code lives in `.opencode/
 | `bash .opencode/tool/verify.sh` | works — deterministic offline verifier (config, structural, compile smoke, semantic typecheck, diff) |
 | `bash .opencode/tool/verify-typecheck-test.sh` | works — isolated regression test for the typecheck gate |
 | `bash .opencode/tool/sync-template.sh` | regenerates `template/.opencode` from `.opencode` (shippable subset) |
+| `bun .opencode/tool/skill-mine/cli.ts <subcommand>` | skill-mine lifecycle CLI (capture/distill/evaluate/validate/promote/retire/restore/recover/rollback/usage) |
+| `bash .opencode/tool/skill-mine-integration-test.sh` | isolated end-to-end lifecycle test (temp repo + bare remote) |
 | `.opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json` | works — semantic typecheck (pinned local `typescript@7.0.2`) |
 | `npx oxfmt <file>` | formatter (on demand) |
 | `npm run …` | **none** — `package.json` has no `scripts` |
@@ -67,3 +69,4 @@ Local plugins live in `.opencode/plugin/*.ts` (default-export a `Plugin`). Exter
 - `structural-check.sh` exits 1 on failure; the PASS-after-FAIL size bug is fixed (size section now guards its pass). `verify.sh` aggregates all checks.
 - `plugin/sdk/` is referenced by the architecture but **does not exist yet** — create it when extracting shared types.
 - `command/ship.md` was 502 lines (over the 500 limit) — rewritten to 142 lines in the verifier-centered rework.
+- Skill-mine runtime state (`.opencode/.skill-mine/`: receipts, traces, candidates, journal, archive, usage.jsonl) is gitignored and never ships to consumers. The nested `.opencode/.gitignore` ships so consumers inherit the `.skill-mine/` ignore rule. Mined skills are promoted to `.opencode/project-skills/` (project scope, not shipped) or `.opencode/skill/` (template scope, shipped). The skill loader is startup-scanned — promote/retire/restore require an opencode restart.

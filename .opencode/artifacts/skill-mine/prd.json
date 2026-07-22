@@ -2,7 +2,7 @@
   "slug": "skill-mine",
   "title": "Skill-Mine — Self-Extending Governed Skill Library",
   "created": "2026-07-22",
-  "status": "planned",
+  "status": "complete",
   "authoritative_plan": "plan.md",
   "note": "PRD body superseded by the 12 Required PRD Corrections in plan.md where the two conflict.",
   "goal": "A manual, gated, phased system where the harness mines its own successful runs into executable OpenCode skills — quarantined candidates, behavioral validation, atomic promotion, catalog budget, manual retirement. No vector DB, no training, no autonomous trigger (deferred).",
