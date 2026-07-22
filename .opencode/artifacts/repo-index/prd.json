@@ -1,0 +1,127 @@
+{
+  "slug": "repo-index",
+  "title": "Repo Index — Bounded On-Demand Locator",
+  "created": "2026-07-22",
+  "status": "ready",
+  "goal": "Add a bounded on-demand /repo-index <scope> command under the read-only explore agent that returns a current, source-citing locator map (max ~40 lines / ~1,500 tokens), with a proof gate comparing localization turns vs the explore/zoom-out baseline; keep only if it measurably reduces localization turns without reducing source reads.",
+  "depends_on": [],
+  "parallel": false,
+  "success_criteria": [
+    {
+      "id": "sc1",
+      "check": "Command exists and is bounded (scope arg, ~40-line / ~1,500-token budget, locator note)",
+      "verify": "test -f .opencode/command/repo-index.md && rg -n \"agent: explore|scope|40|1,500|locator\" .opencode/command/repo-index.md"
+    },
+    {
+      "id": "sc2",
+      "check": "Read-only + source-citing (runs under explore; every citation is a real path:line)",
+      "verify": "rg -n \"agent: explore\" .opencode/command/repo-index.md && run the command on a scope and confirm each citation resolves"
+    },
+    {
+      "id": "sc3",
+      "check": "No tracked index file, no injection change, no verify change",
+      "verify": "test ! -e .opencode/repo-index.md && git diff --exit-code .opencode/opencode.json .opencode/tool/verify.sh"
+    },
+    {
+      "id": "sc4",
+      "check": "Proof gate runs (recorded comparison of localization turns vs baseline on >=3 real tasks incl. 1 consumer)",
+      "verify": "rg -n \"proof gate|baseline|localization|turns\" .opencode/artifacts/repo-index/progress.md"
+    },
+    {
+      "id": "sc5",
+      "check": "Keep/delete decision recorded with evidence in progress.md + MEMORY.md",
+      "verify": "rg -n \"keep|delete|decision\" .opencode/artifacts/repo-index/progress.md && rg -n \"repo-index\" .opencode/artifacts/MEMORY.md"
+    },
+    {
+      "id": "sc6",
+      "check": "No drift introduced (no committed snapshot; if deleted, no residual files)",
+      "verify": "git status --porcelain shows only intended changes"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "category": "feature",
+      "title": "Bounded /repo-index <scope> command under explore agent",
+      "end_state": "The /repo-index command exists, runs read-only under explore, takes a scope arg, enforces a ~40-line / ~1,500-token budget, cites path:line, and includes a locator-only note. No tracked file, no injection, no verify change.",
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/command/repo-index.md", "AGENTS.md", ".opencode/README.md"],
+      "verify": "test -f .opencode/command/repo-index.md && rg -n \"agent: explore|scope|40|1,500|locator\" .opencode/command/repo-index.md && test ! -e .opencode/repo-index.md && git diff --exit-code .opencode/tool/verify.sh .opencode/opencode.json"
+    },
+    {
+      "id": "t2",
+      "category": "eval",
+      "title": "Proof gate on real tasks (>=3 tasks incl. 1 consumer)",
+      "end_state": "A recorded comparison of localization turns and wrong-file starts vs the explore/zoom-out baseline on >=3 representative tasks, with a keep/delete recommendation in progress.md.",
+      "depends_on": ["t1"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/artifacts/repo-index/progress.md"],
+      "verify": "rg -n \"proof gate|baseline|turns|keep|delete\" .opencode/artifacts/repo-index/progress.md"
+    },
+    {
+      "id": "t3",
+      "category": "governance",
+      "title": "Keep/delete decision + closeout",
+      "end_state": "Apply stop conditions. If kept: document in MEMORY.md + roadmap.md. If deleted: document the negative result. Update AGENTS.md/README.md to match final state. Mark artifact Complete. Remove .active.",
+      "depends_on": ["t2"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".opencode/command/repo-index.md",
+        ".opencode/artifacts/MEMORY.md",
+        ".opencode/roadmap.md",
+        ".opencode/state.md",
+        "AGENTS.md",
+        ".opencode/README.md",
+        ".opencode/artifacts/repo-index/spec.md",
+        ".opencode/artifacts/repo-index/prd.json",
+        ".opencode/artifacts/repo-index/plan.md",
+        ".opencode/artifacts/repo-index/progress.md",
+        ".opencode/artifacts/.active"
+      ],
+      "verify": "bash .opencode/tool/verify.sh (exit 0) && rg -n \"repo-index\" .opencode/artifacts/MEMORY.md && test ! -e .opencode/artifacts/.active"
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "oq1",
+      "question": "What scopes are most useful? (subsystem, symbol, task-type, file-pattern)",
+      "status": "open",
+      "resolution": "Resolve during Task 2 (proof gate reveals which scopes the agent requests)"
+    },
+    {
+      "id": "oq2",
+      "question": "What's the proof-gate task set? (which 3+ tasks, which consumer project)",
+      "status": "open",
+      "resolution": "Resolve during Task 2 (user picks representative tasks)"
+    },
+    {
+      "id": "oq3",
+      "question": "Should explore.md get a one-line pointer to /repo-index?",
+      "status": "open",
+      "resolution": "Resolve during Task 1 (surgical; only if it reduces discovery friction)"
+    }
+  ],
+  "stop_conditions": [
+    "AGENTS.md + one targeted search already identifies the work site within the existing explore budget (<=3 calls/symbol)",
+    "No repeated wrong-file starts or localization bottleneck has been observed",
+    "The output mostly repeats AGENTS.md, README, or .template-manifest.json",
+    "It cannot stay bounded without omitting the information users actually need",
+    "It helps only this template and not at least one real consumer project",
+    "Agents still repeat the same broad searches after reading it (no net reduction)",
+    "Correctness requires behavioral summaries instead of source locators",
+    "The design requires auto-injection, embeddings, a database, watchers, or a committed generated snapshot"
+  ],
+  "non_goals": [
+    "A committed/tracked repo-index.md file",
+    "Adding anything to opencode.json instructions[]",
+    "A new verify.sh check or structural-check rule",
+    "A Bun TS generator tool, cache, watcher, database, embeddings, or incremental hashing infra",
+    "Auto-injection of any index into the system prompt",
+    "Behavioral summaries that replace source for edits",
+    "Multi-language parser/tree-sitter dependency"
+  ]
+}
