@@ -21,7 +21,7 @@ pass() {
 }
 
 # --- 1. Plugin isolation: no cross-plugin imports ---
-echo "[Check 1/6] Plugin isolation — no cross-plugin imports..."
+echo "[Check 1/7] Plugin isolation — no cross-plugin imports..."
 
 PLUGIN_DIR="$ROOT/.opencode/plugin"
 PLUGINS=()
@@ -42,7 +42,7 @@ done
 pass "No cross-plugin imports detected"
 
 # --- 2. SDK boundary: SDK doesn't import from plugin/ ---
-echo "[Check 2/6] SDK boundary — SDK has no plugin dependencies..."
+echo "[Check 2/7] SDK boundary — SDK has no plugin dependencies..."
 
 if [ -d "$PLUGIN_DIR/sdk" ]; then
 	SDK_FILES=$(find "$PLUGIN_DIR/sdk" -name "*.ts" 2>/dev/null)
@@ -57,7 +57,7 @@ fi
 pass "SDK boundary intact"
 
 # --- 3. File size limits ---
-echo "[Check 3/6] File size limits..."
+echo "[Check 3/7] File size limits..."
 
 check_size() {
 	local path="$1"
@@ -96,7 +96,7 @@ if [ "$SIZE_FAIL" -eq 0 ]; then
 fi
 
 # --- 4. No TODO/FIXME without owner ---
-echo "[Check 4/6] TODO/FIXME hygiene..."
+echo "[Check 4/7] TODO/FIXME hygiene..."
 
 BAD_TODO=$(grep -rn "TODO\|FIXME" "$ROOT/.opencode/plugin/"*.ts 2>/dev/null | grep -v "//.*owner:" || true)
 if [ -n "$BAD_TODO" ]; then
@@ -106,7 +106,7 @@ fi
 pass "TODO hygiene acceptable"
 
 # --- 5. Consistent naming: kebab-case filenames (basename only) ---
-echo "[Check 5/6] Filename convention..."
+echo "[Check 5/7] Filename convention..."
 
 BAD_NAMES=$(find "$ROOT/.opencode/plugin" "$ROOT/.opencode/tool" -name "*.ts" -o -name "*.sh" 2>/dev/null | grep -v node_modules | while IFS= read -r f; do
 	bn=$(basename "$f")
@@ -120,7 +120,7 @@ fi
 pass "Filename convention OK"
 
 # --- 6. Remediator: if this check fails, instructions are below ---
-echo "[Check 6/6] Remediation readiness..."
+echo "[Check 6/7] Remediation readiness..."
 
 # Ensure fallow is available
 if command -v npx &>/dev/null; then
@@ -128,6 +128,22 @@ if command -v npx &>/dev/null; then
 		pass "Fallow available for structural analysis"
 	else
 		echo "  INFO: Fallow not installed — run 'npm install -g fallow' or 'npx fallow'"
+	fi
+fi
+
+# --- 7. Repo boundary: external_directory must be deny ---
+echo "[Check 7/7] Repo boundary — external_directory locked to deny..."
+
+CONFIG="$ROOT/.opencode/opencode.json"
+if [ ! -f "$CONFIG" ]; then
+	fail "opencode.json missing — cannot verify repo boundary (permission.external_directory must be deny)"
+elif ! command -v bun >/dev/null 2>&1; then
+	fail "bun not available — cannot verify repo boundary (permission.external_directory must be deny)"
+else
+	if bun -e 'const fs=require("fs");let ok=false;try{const c=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));ok=c!=null&&typeof c==="object"&&c.permission!=null&&c.permission.external_directory==="deny"}catch(e){ok=false}process.exit(ok?0:1)' "$CONFIG" 2>/dev/null; then
+		pass "external_directory is deny (repo boundary locked)"
+	else
+		fail "permission.external_directory must be the string \"deny\" — prevents drift to sibling repos/folders"
 	fi
 fi
 
@@ -144,5 +160,6 @@ else
 	echo "  - File too long → split into smaller modules"
 	echo "  - TODOs without owner → add // @owner:name"
 	echo "  - Uppercase files → rename to kebab-case"
+	echo "  - external_directory not deny → set permission.external_directory to \"deny\" in opencode.json"
 	exit 1
 fi
