@@ -7,10 +7,10 @@ updated: 2026-07-22
 
 ## Current Position
 
-**Active Plan:** skill-mine — plan ready (awaiting `/ship`)
-**Status:** `/plan` complete; spec/prd reconciled with 12 corrections; plan.md written; no implementation yet
+**Active Plan:** skill-mine — Plan 1 shipped; Plans 2–7 pending
+**Status:** Plan 1 (Control Plane + Validation Contracts) complete + shipped; config/schema/scope-roots green
 **Started:** 2026-07-22
-**Phase:** skill-mine — Plan written, ready to ship
+**Phase:** skill-mine — Plan 1 done, Plan 2 next
 
 ## Recent Completed Work
 
@@ -35,6 +35,7 @@ updated: 2026-07-22
 | 2026-07-22 | Template ships typecheck deps | Consumer-clean reversed: `sync-template.sh` ships `package.json`/`package-lock.json`; consumers run `npm ci --prefix .opencode` for 5/5; template verify = 5/5 PASS (was 4+SKIP); SKIP path kept as fresh-checkout fallback |
 | 2026-07-22 | `/create skill-mine` | Full PRD (358 lines) + prd.json (194 lines): self-extending governed skill library; 6-stage lifecycle, ignored quarantine, phased delivery, 8 success criteria; deep research (3 explore + 1 scout + 1 review) |
 | 2026-07-22 | `/plan skill-mine` | Plan written (7 serial child plans, 16 TDD tasks, 15 artifacts); spec/prd reconciled with 12 Required PRD Corrections (review audit P1 contradictions); Discovery Level 3; awaiting `/ship` |
+| 2026-07-22 | skill-mine Plan 1 shipped | Control plane + validation contracts: tracked `.opencode/skill-mine.json`, `tool/skill-mine/{config,schema}.ts` (loadConfig/bootstrapRuntime + validateSkill generic+mined-admission + privacy scan), `skills.paths` registered, `.skill-mine` gitignored, sync excludes project-skills + runtime; 22 bun tests pass, typecheck + verify.sh 5/5 green |
 
 ## Active Decisions
 
@@ -89,12 +90,14 @@ updated: 2026-07-22
 15. [x] `/ship semantic-typecheck` — 5-check verifier live, typecheck Check 4/5, 3 baseline errors fixed, regression test, generic export, docs updated, committed + pushed
 16. [x] `/create skill-mine` — Full PRD + prd.json; self-extending governed skill library; 6-stage lifecycle
 17. [x] `/plan skill-mine` — 7-plan/16-task TDD plan; spec/prd reconciled with 12 corrections; awaiting `/ship`
+18. [x] `/ship skill-mine` Plan 1 — Control plane + validation contracts shipped; config/schema TDD green; skills.paths + sync scope boundary; verify.sh 5/5
+19. [ ] `/ship skill-mine` Plan 2 — Completion evidence + private capture (receipts + sanitized capture)
 
 ## Session Handoff
 
-**Last Session:** 2026-07-22 (`/plan skill-mine` complete: 7-plan/16-task TDD plan written, spec/prd reconciled with 12 corrections, progress.md + state.md updated)
-**Next Session Priority:** `/ship skill-mine` — execute the 7-plan TDD sequence. First write-enabled action: apply the 12 Required PRD Corrections (spec/prd already reconciled at the status/pointer level), then Plan 1 Task 1 (tracked `.opencode/skill-mine.json` + lazy runtime + RED config test). Treat each child plan as one work unit per Ship-on-Completion after `verify.sh` is green. Stop if a synthetic credential passes any gate, or if the native skill hook is unobservable (use manual telemetry fallback).
-**Known Issues:** (none — plan ready; spec/prd reconciled)
+**Last Session:** 2026-07-22 (`/ship skill-mine` Plan 1 shipped: tracked config + lazy runtime, frontmatter/provenance/privacy schema, scope roots + export boundary; 22 tests pass, typecheck + verify.sh 5/5 green)
+**Next Session Priority:** `/ship skill-mine` Plan 2 — Completion Evidence and Private Capture. Tasks: 2.1 provisional/finalized receipts (temp git repos + bare remote; finalize only after push; allowlisted fields only); 2.2 receipt-only sanitized capture (`capture <sha>` accepts only finalized matching receipt; normalize paths; ship flow prepares→commits→pushes→finalizes). Treat Plan 2 as one work unit; Ship-on-Completion after verify.sh green. Stop if a synthetic credential passes capture or a receipt can be forged from an unpushed tree.
+**Known Issues:** (none — Plan 1 green and shipped)
 **Context Links:** `.opencode/artifacts/skill-mine/{spec,plan,progress,prd.json}`, `AGENTS.md`, `.opencode/roadmap.md`, `.opencode/artifacts/MEMORY.md`
 **Repo:** https://github.com/ryan-brosas/original-opencode-template (public, main)
 

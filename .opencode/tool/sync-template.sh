@@ -8,6 +8,10 @@
 # excluded. package.json + package-lock.json ship so consumers can run
 # `npm ci --prefix .opencode` to enable the semantic typecheck (verify.sh Check 4/5).
 #
+# Skill-mine scope boundary: `.skill-mine` (ignored runtime state) and
+# `project-skills` (project-scoped mined skills) never ship — only the template
+# skill root `.opencode/skill/` and the skill-mine tool/config ship to consumers.
+#
 # Artifacts use a generic allowlist: under artifacts/, only MEMORY.md, todo.md, and
 # example/** ship. Every other artifact path (active feature dirs, specs, plans,
 # progress, .active, research notes) is excluded — so no working feature leaks into
@@ -44,6 +48,8 @@ EXCLUDES=(
   "state.md"
   "tech-stack.md"
   ".template-manifest.json"
+  "project-skills"
+  ".skill-mine"
 )
 
 is_excluded() {

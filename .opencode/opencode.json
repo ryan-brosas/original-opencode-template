@@ -138,6 +138,9 @@
   },
   "share": "manual",
   "small_model": "openai/gpt-5.4-mini",
+  "skills": {
+    "paths": [".opencode/project-skills"]
+  },
   "watcher": {
     "ignore": [
       "node_modules/**",

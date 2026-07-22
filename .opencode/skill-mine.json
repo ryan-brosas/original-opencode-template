@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "judgeVersion": "v1-writing-skills",
+  "maxActiveMinedSkills": 10,
+  "maxDescriptionBytes": 240,
+  "maxAggregateDescriptionBytes": 2400,
+  "projectSkillsRoot": ".opencode/project-skills",
+  "templateSkillsRoot": ".opencode/skill",
+  "runtimeRoot": ".opencode/.skill-mine"
+}
