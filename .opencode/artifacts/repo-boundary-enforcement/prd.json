@@ -1,0 +1,136 @@
+{
+  "slug": "repo-boundary-enforcement",
+  "title": "Repo-Boundary Enforcement — Defense-in-Depth",
+  "created": "2026-07-22",
+  "status": "ready",
+  "goal": "Layered enforcement so agents cannot drift outside the workspace: a static invariant (structural-check asserts external_directory == deny, preventing config regression) plus a runtime tool.execute.before plugin (repo-boundary.ts) that denies path-bearing tools and bash commands whose resolved path escapes {directory,worktree}, closing the scout-found bypass vectors (git -C, ls, subprocess, symlinks, last-match-wins allow).",
+  "depends_on": [],
+  "parallel": false,
+  "success_criteria": [
+    {
+      "id": "sc1",
+      "check": "Static invariant exists and fails on regression (structural-check Check 7 asserts external_directory == deny; exits 1 on ask/allow/missing)",
+      "verify": "set external_directory=ask, bash .opencode/tool/structural-check.sh (exit 1); restore deny, re-run (exit 0)"
+    },
+    {
+      "id": "sc2",
+      "check": "Plugin exists, bounded (<=300 lines), SDK-only import",
+      "verify": "test -f .opencode/plugin/repo-boundary.ts && wc -l .opencode/plugin/repo-boundary.ts (<=300) && rg -n '^import' .opencode/plugin/repo-boundary.ts (SDK only)"
+    },
+    {
+      "id": "sc3",
+      "check": "Plugin denies escapes and allows in-repo (>=6 bun test cases: in-repo pass, ../ escape throw, symlink-outside throw, git -C ../ throw, ls ../ throw, in-repo bash pass)",
+      "verify": "bun .opencode/plugin/repo-boundary.test.ts (exit 0)"
+    },
+    {
+      "id": "sc4",
+      "check": "Plugin does not false-deny legitimate work (verify.sh runs with plugin live, exits 0)",
+      "verify": "bash .opencode/tool/verify.sh (exit 0)"
+    },
+    {
+      "id": "sc5",
+      "check": "Config cannot silently regress (static check + verify together catch a committed ask)",
+      "verify": "covered by sc1 + sc4"
+    },
+    {
+      "id": "sc6",
+      "check": "Decision recorded in MEMORY.md + bead closed (.active removed)",
+      "verify": "rg -n 'repo-boundary enforcement' .opencode/artifacts/MEMORY.md && test ! -e .opencode/artifacts/.active"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "category": "feature",
+      "title": "Static invariant — structural-check Check 7 (external_directory == deny)",
+      "end_state": "structural-check.sh has a Check 7 asserting .opencode/opencode.json root permission.external_directory == deny via bun/jq; exits 1 on ask/allow/missing; check counter 6->7; verify.sh green.",
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/tool/structural-check.sh"],
+      "verify": "bash .opencode/tool/structural-check.sh (exit 0); set external_directory=ask, re-run (exit 1); restore deny; bash .opencode/tool/verify.sh (exit 0)"
+    },
+    {
+      "id": "t2",
+      "category": "feature",
+      "title": "Runtime repo-boundary plugin (tool.execute.before containment guard)",
+      "end_state": ".opencode/plugin/repo-boundary.ts (<=300 lines, SDK-only) mirrors guard.ts: tool.execute.before reads {directory,worktree} from ctx, resolves path args (read/edit/glob/grep) + bash command tokens against directory with realpath, throws on escape, returns {args} unchanged otherwise; typecheck clean; verify.sh green (no false-deny).",
+      "depends_on": ["t1"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/plugin/repo-boundary.ts"],
+      "verify": "wc -l .opencode/plugin/repo-boundary.ts (<=300) && rg -n '^import' .opencode/plugin/repo-boundary.ts (SDK only) && .opencode/node_modules/.bin/tsc --noEmit -p .opencode/tsconfig.json && bash .opencode/tool/verify.sh (exit 0)"
+    },
+    {
+      "id": "t3",
+      "category": "test",
+      "title": "Plugin behavioral tests (bun, >=6 cases with real temp dir + symlink)",
+      "end_state": ".opencode/plugin/repo-boundary.test.ts passes: in-repo read/edit/glob/grep pass; ../sibling escape throws; symlink-to-outside throws; git -C ../sibling throws; ls ../sibling throws; cat in-repo-file passes. Uses a real temp dir + real symlink (no mocking of realpath).",
+      "depends_on": ["t2"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [".opencode/plugin/repo-boundary.test.ts"],
+      "verify": "bun .opencode/plugin/repo-boundary.test.ts (exit 0)"
+    },
+    {
+      "id": "t4",
+      "category": "governance",
+      "title": "Docs + closeout (AGENTS.md, README.md, MEMORY.md, roadmap.md, state.md, .active removed)",
+      "end_state": "AGENTS.md + .opencode/README.md plugin inventories updated; MEMORY.md decision appended (Option C, what it catches, residual accepted bypass); roadmap.md experiment->shipped; state.md active+complete; verify.sh + plugin tests green; committed+pushed; .active git rm'd.",
+      "depends_on": ["t1", "t2", "t3"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        "AGENTS.md",
+        ".opencode/README.md",
+        ".opencode/artifacts/MEMORY.md",
+        ".opencode/roadmap.md",
+        ".opencode/state.md",
+        ".opencode/artifacts/repo-boundary-enforcement/spec.md",
+        ".opencode/artifacts/repo-boundary-enforcement/prd.json",
+        ".opencode/artifacts/repo-boundary-enforcement/progress.md",
+        ".opencode/artifacts/.active"
+      ],
+      "verify": "bash .opencode/tool/verify.sh (exit 0) && bun .opencode/plugin/repo-boundary.test.ts (exit 0) && rg -n 'repo-boundary enforcement' .opencode/artifacts/MEMORY.md && test ! -e .opencode/artifacts/.active"
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "oq1",
+      "question": "Bash-scan granularity: token-scan vs targeted denylist (git -C/ls/subprocess)",
+      "status": "open",
+      "resolution": "Resolve in Task 2: token-scan (simplest, catches all vectors); denylist is brittle"
+    },
+    {
+      "id": "oq2",
+      "question": "Symlink policy: resolve+deny escape (strict) vs leave to opencode lexical",
+      "status": "open",
+      "resolution": "Resolve in Task 2: resolve+deny escape with explicit allow-rule escape hatch"
+    },
+    {
+      "id": "oq3",
+      "question": "Exact tool arg shapes (read/edit/glob/grep/bash)",
+      "status": "open",
+      "resolution": "Resolve in Task 2: verify against SDK Tool type / existing plugin usage"
+    },
+    {
+      "id": "oq4",
+      "question": "Does .opencode/README.md list plugins? (Task 4 doc edit)",
+      "status": "open",
+      "resolution": "Resolve in Task 4: grep README for plugin inventory"
+    }
+  ],
+  "stop_conditions": [
+    "Plugin cannot reliably extract path args from bash (token-scan too brittle) -> drop plugin (t2/t3), keep static invariant (t1)",
+    "Plugin false-denies legitimate in-repo work after testing (sc4 fails) -> drop plugin, keep static check, document negative result",
+    "opencode upstream fixes bypasses and pins in @opencode-ai/plugin@1.18.4 -> re-evaluate plugin; static invariant stays regardless"
+  ],
+  "non_goals": [
+    "A permission.ask plugin hook (redundant under deny + locked config)",
+    "Permission-event observability/logging (deferred until an audit reason exists)",
+    "Rewriting or monkey-patching opencode's own external_directory implementation",
+    "Network firewalling, sandboxing beyond path containment, or a separate process jail",
+    "Modifying upstream opencode or bumping the pinned SDK",
+    "A general bash AST parser (token-scan; accept residual subprocess-in-literal bypass)"
+  ]
+}
