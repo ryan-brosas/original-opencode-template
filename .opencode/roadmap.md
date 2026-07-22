@@ -18,10 +18,10 @@ Full plan: `.opencode/artifacts/template-harness-v2/plan.md`.
 
 | Plan | Goal | Status | Depends On |
 | ---- | ----------------------------------------------- | ----------- | ---------- |
-| 1 · Truthful verify | Deterministic offline verifier + linear `/ship` | Not Started | - |
-| 2 · Prompt fidelity | Remove hidden prompt rewriting + ambient injection | Not Started | Plan 1 |
-| 3 · Direct execution | Align `/fix` + build; disable swarm routing | Not Started | Plan 2 |
-| 4 · Permissions | Least-privilege effective agent boundaries | Not Started | Plan 3 |
+| 1 · Truthful verify | Deterministic offline verifier + linear `/ship` | Complete | - |
+| 2 · Prompt fidelity | Remove hidden prompt rewriting + ambient injection | Complete | Plan 1 |
+| 3 · Direct execution | Align `/fix` + build; disable swarm routing | Complete | Plan 2 |
+| 4 · Permissions | Least-privilege effective agent boundaries | Complete | Plan 3 |
 
 ## Must-have truths
 
@@ -38,10 +38,10 @@ scripts, network downloads, or mandatory plan artifacts.
 
 **Success Criteria:**
 
-- [ ] `bash .opencode/tool/verify.sh` exits 1 before `ship.md` trim, 0 after
-- [ ] Per-check output never prints PASS after a recorded FAIL
-- [ ] `command/ship.md` ≤ 150 lines, single-writer `localize → patch → verify → evidence`
-- [ ] `structural-check.sh` no longer prints "All files within size limits" after a violation
+- [x] `bash .opencode/tool/verify.sh` exits 1 before `ship.md` trim, 0 after
+- [x] Per-check output never prints PASS after a recorded FAIL
+- [x] `command/ship.md` ≤ 150 lines, single-writer `localize → patch → verify → evidence`
+- [x] `structural-check.sh` no longer prints "All files within size limits" after a violation
 
 **Tasks:**
 
@@ -61,8 +61,8 @@ scripts, network downloads, or mandatory plan artifacts.
 
 **Success Criteria:**
 
-- [ ] No plugin hooks `experimental.chat.{messages,system}.transform`
-- [ ] Forced-compaction test preserves intent, modified paths, constraints, next step
+- [x] No plugin hooks `experimental.chat.{messages,system}.transform`
+- [x] Forced-compaction test preserves intent, modified paths, constraints, next step
 
 **Tasks:**
 
@@ -81,8 +81,8 @@ do not restore every-turn injection.
 
 **Success Criteria:**
 
-- [ ] No active `batch-implement`/wave/5-agent routing in ship/fix/build
-- [ ] `/ship` accepts a direct request without `.opencode/artifacts/.active`
+- [x] No active `batch-implement`/wave/5-agent routing in ship/fix/build
+- [x] `/ship` accepts a direct request without `.opencode/artifacts/.active`
 
 **Tasks:**
 
@@ -100,8 +100,8 @@ do not restore every-turn injection.
 
 **Success Criteria:**
 
-- [ ] `opencode debug config --pure` parses
-- [ ] For general/explore/review/scout: `tools.apply_patch === false && tools.task === false`
+- [x] `opencode debug config --pure` parses
+- [x] For general/explore/review/scout: `tools.apply_patch === false && tools.task === false`
 
 **Tasks:**
 
