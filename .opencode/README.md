@@ -73,12 +73,11 @@ Tools in `.opencode/tool/` are loaded by OpenCode and available to agents.
 
 Current plugin source files in `.opencode/plugin/`:
 
-- (memory system replaced with file-based context in `.opencode/artifacts/MEMORY.md`)
-- `sessions.ts` - session browsing/search/summarization tools
-- `compaction.ts` - compaction-time context injection and recovery protocol
-- `swarm-enforcer.ts` - `/create` -> `/start` -> `/ship` workflow enforcement
+- `diagnostics.ts` - post-edit diagnostics auto-injection (type/lint/slop) + on-demand `diagnostics` tool
+- `guard.ts` - safety guardrails (pipe-to-shell, commit message format)
 - `skill-mcp.ts` - bridge for skill-scoped MCP servers/tools
-- `copilot-auth.ts` - GitHub Copilot auth/provider integration
+
+Memory is file-based in `.opencode/artifacts/MEMORY.md` (grep/read/edit, no DB).
 
 See `.opencode/plugin/README.md` for plugin details.
 

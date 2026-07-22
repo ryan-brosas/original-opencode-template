@@ -8,6 +8,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 ERRORS=0
+SIZE_FAIL=0
 
 # --- Helper ---
 fail() {
@@ -67,6 +68,7 @@ check_size() {
 		lines=$(wc -l <"$path")
 		if [ "$lines" -gt "$max" ]; then
 			fail "$label exceeds ${max} lines ($lines)"
+			SIZE_FAIL=1
 		fi
 	fi
 }
@@ -89,7 +91,9 @@ for f in "$ROOT/.opencode/command"/*.md; do
 	[ ! -f "$f" ] && continue
 	check_size "$f" 500 "Command $(basename "$f")"
 done
-pass "All files within size limits"
+if [ "$SIZE_FAIL" -eq 0 ]; then
+	pass "All files within size limits"
+fi
 
 # --- 4. No TODO/FIXME without owner ---
 echo "[Check 4/6] TODO/FIXME hygiene..."

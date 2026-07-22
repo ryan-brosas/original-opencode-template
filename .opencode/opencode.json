@@ -4,34 +4,39 @@
   "agent": {
     "build": {
       "description": "Primary development agent with full codebase access",
-      "model": "opencode/deepseek-v4-flash-free"
+      "model": "makora/zai-org/GLM-5.2-NVFP4",
+      "reasoningEffort": "max"
     },
     "compaction": {
-      "description": "Session summarizer for context continuity across compactions"
+      "description": "Session summarizer for context continuity across compactions",
+      "model": "openai/gpt-5.4-mini"
     },
     "explore": {
       "description": "Fast codebase search specialist",
-      "model": "opencode/deepseek-v4-flash-free"
+      "model": "openai/gpt-5.4-mini"
     },
     "general": {
       "description": "General-purpose subagent for fast, well-defined tasks; delegates complexity quickly",
-      "model": "opencode/deepseek-v4-flash-free"
+      "model": "makora/zai-org/GLM-5.2-NVFP4"
     },
     "plan": {
       "description": "Primary planning agent for architecture and multi-phase execution",
-      "model": "opencode/mimo-v2.5-free"
+      "model": "openai/gpt-5.6-sol-fast",
+      "reasoningEffort": "max"
     },
     "review": {
       "description": "Code review, debugging, and security audit specialist",
-      "model": "opencode/deepseek-v4-flash-free"
+      "model": "openai/gpt-5.6-sol-fast",
+      "reasoningEffort": "max"
     },
     "scout": {
       "description": "External research specialist for library docs and patterns",
-      "model": "opencode/deepseek-v4-flash-free"
+      "model": "openai/gpt-5.4-mini"
     },
     "vision": {
       "description": "Visual content specialist for multimodal analysis and UI/UX guidance",
-      "model": "opencode/mimo-v2.5-free"
+      "model": "openai/gpt-5.6-luna",
+      "reasoningEffort": "medium"
     }
   },
   "autoupdate": false,
@@ -67,7 +72,7 @@
       "type": "local"
     }
   },
-  "model": "opencode/mimo-v2.5-free",
+  "model": "openai/gpt-5.6-sol-fast",
   "permission": {
     "bash": {
       "*": "allow",
@@ -112,383 +117,27 @@
   },
   "plugin": ["@tarquinen/opencode-dcp@latest", "openslimedit@latest"],
   "provider": {
-    "proxypal": {
-      "models": {
-        "claude-opus-4.6": {
-          "limit": {
-            "context": 200000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Claude Opus 4 6"
-        },
-        "coder-model": {
-          "limit": {
-            "context": 262144,
-            "output": 65536
-          },
-          "name": "Coder Model"
-        },
-        "glm-4.5": {
-          "limit": {
-            "context": 128000,
-            "output": 16384
-          },
-          "name": "Glm 4 5"
-        },
-        "glm-4.5-air": {
-          "limit": {
-            "context": 128000,
-            "output": 16384
-          },
-          "name": "Glm 4 5 Air"
-        },
-        "glm-4.6": {
-          "limit": {
-            "context": 128000,
-            "output": 16384
-          },
-          "name": "Glm 4 6"
-        },
-        "glm-4.7": {
-          "limit": {
-            "context": 128000,
-            "output": 16384
-          },
-          "name": "Glm 4 7"
-        },
-        "gpt-5": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5-codex": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 Codex",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5-codex-mini": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 Codex Mini",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5.1": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 1",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5.1-codex": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 1 Codex",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5.1-codex-max": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 1 Codex Max",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5.1-codex-mini": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 1 Codex Mini",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5.2": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 2",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5.2-codex": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 2 Codex",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5.3-codex": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 3 Codex",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5.3-codex-spark": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 3 Codex Spark",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5.4": {
-          "limit": {
-            "context": 400000,
-            "output": 128000
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 4",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        },
-        "gpt-5.4-mini": {
-          "limit": {
-            "context": 400000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": ["text", "image", "pdf"],
-            "output": ["text"]
-          },
-          "name": "Gpt 5 4 Mini",
-          "options": {
-            "reasoningEffort": "medium"
-          },
-          "reasoning": true
-        }
-      },
-      "name": "ProxyPal",
-      "npm": "@ai-sdk/anthropic",
+    "makora": {
+      "name": "Makora",
+      "npm": "@ai-sdk/openai-compatible",
       "options": {
-        "apiKey": "proxypal-local",
-        "baseURL": "http://127.0.0.1:8317/v1",
-        "includeUsage": true
-      }
-    },
-    "opencode-go": {
-      "description": "OpenCode Go subscription — $10/mo for open coding models",
-      "options": {
-        "baseURL": "https://opencode.ai/zen/go/v1"
+        "apiKey": "{env:MAKORA_API_KEY}",
+        "baseURL": "https://inference.makora.com/v1"
       },
       "models": {
-        "deepseek-v4-flash": {
+        "zai-org/GLM-5.2-NVFP4": {
+          "name": "GLM 5.2 NVFP4",
           "limit": {
-            "context": 200000,
-            "output": 64000
+            "context": 1048576,
+            "output": 16384
           },
-          "reasoning": true,
-          "tool_call": true
-        },
-        "mimo-v2.5": {
-          "limit": {
-            "context": 180000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
-          },
-          "reasoning": true,
-          "tool_call": true
-        },
-        "deepseek-v4-pro": {
-          "limit": {
-            "context": 240000,
-            "output": 64000
-          },
-          "reasoning": true,
-          "tool_call": true
-        },
-        "mimo-v2.5-pro": {
-          "limit": {
-            "context": 220000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": ["text", "image", "audio"],
-            "output": ["text"]
-          },
-          "reasoning": true,
-          "tool_call": true
-        },
-        "qwen3.7-plus": {
-          "limit": {
-            "context": 300000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": ["text", "image", "video"],
-            "output": ["text"]
-          },
-          "reasoning": true,
-          "tool_call": true
-        },
-        "minimax-m3": {
-          "limit": {
-            "context": 512000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
-          },
-          "reasoning": true,
-          "tool_call": true
-        }
-      }
-    },
-    "deepseek": {
-      "description": "Direct DeepSeek API — deepseek-v4-flash & deepseek-v4-pro 1M native context",
-      "models": {
-        "deepseek-v4-flash": {
-          "limit": {
-            "context": 200000,
-            "output": 64000
-          },
-          "reasoning": true,
-          "tool_call": true
-        },
-        "deepseek-v4-pro": {
-          "limit": {
-            "context": 240000,
-            "output": 64000
-          },
-          "reasoning": true,
-          "tool_call": true
-        }
-      }
-    },
-    "xiaomi-mimo": {
-      "description": "Direct Xiaomi MiMo API — mimo-v2.5 & mimo-v2.5-pro 1M native context",
-      "models": {
-        "mimo-v2.5": {
-          "limit": {
-            "context": 180000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": ["text", "image", "audio"],
-            "output": ["text"]
-          },
-          "reasoning": true,
-          "tool_call": true
-        },
-        "mimo-v2.5-pro": {
-          "limit": {
-            "context": 220000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": ["text", "image", "audio"],
-            "output": ["text"]
-          },
-          "reasoning": true,
-          "tool_call": true
+          "reasoning": true
         }
       }
     }
   },
   "share": "manual",
-  "small_model": "opencode/gpt-5-nano",
+  "small_model": "openai/gpt-5.4-mini",
   "watcher": {
     "ignore": [
       "node_modules/**",
