@@ -58,9 +58,36 @@ Security review (read-only `review` subagent) found 1 functional blocker + sever
   - P1 state_dir `..`/absolute escape rejected.
   - Test: added sentinel ("child never ran") checks to all preflight cases, P9 (`..` state_dir), R4 (external child), `--ro-bind / /` contract assertion.
 
+## Shipped: Plan 01 Task 3 — repo-boundary liveness plugin (warn-based mislaunch detector)
+
+Changed: `.opencode/plugin/repo-boundary.ts:1-144` (new), `.opencode/tool/repo-boundary/repo-boundary.test.ts:1-165` (new), `.opencode/artifacts/repo-boundary-enforcement/spec.md:36,83,131`, `plan.md:71-74,84`, `prd.json:30-31,85,189`, `.opencode/.template-manifest.json` (regenerated)
+Commands: `bun test ./.opencode/tool/repo-boundary/repo-boundary.test.ts` (exit 0, 7 pass 0 fail, 17 expect() calls), `bash .opencode/tool/verify.sh` (exit 0), `bash .opencode/tool/opencode-sandbox-test.sh` (exit 0, unaffected), `bash .opencode/tool/repo-boundary-invariant-test.sh` (exit 0, unaffected)
+Result: PASS — all gates green
+
+### Load-bearing empirical findings (cited for closeout)
+
+- **opencode SWALLOWS plugin factory throws** (throw-swallow experiment): a factory throw is logged `level=ERROR "failed to load plugin"` and opencode CONTINUES (LLM responds, exit 0). This triggered plan.md:74 stop condition → the guard is **WARNING-only, never fail-closed throw**. The bubblewrap launcher (Task 2) is the actual security boundary; the plugin only detects whether opencode was launched inside it.
+- **opencode auto-loads named function exports as plugin factories** (named-export experiment): a module exporting `const NotAPlugin = "string"` (named) + a valid default logged `level=ERROR "failed to load plugin" error="Plugin export is not a function"`. So a named `checkLiveness` export would be mis-invoked as a plugin factory. → `checkLiveness` is **private** (not exported); only `RepoBoundaryPlugin` + `default` ship (matches `guard.ts`/`diagnostics.ts`).
+- **TUI toast API exists** (SDK lookup): `await client.tui.showToast({ body: { title, message, variant: "warning" } })` (`TuiShowToastData`, `/tui/show-toast`); `PluginInput.client` has `client.tui`. → dual-channel warning: stderr immediately in the factory (headless/logs reliable) + best-effort toast from a `chat.message` hook ONCE (TUI guaranteed up by first user message; try/catch: headless/no-TUI → fails caught).
+
+### Security-review findings fixed (read-only `review` subagent, ses_076edd427)
+
+- **P1 warning TUI-invisible** (conf 0.91) — stderr alone can be overwritten by the next TUI render. Fix: dual-channel (stderr + best-effort toast from `chat.message` hook, idempotent via `toasted` flag reset at factory start).
+- **P2 `checkLiveness` auto-loaded as malformed plugin** (conf 0.97) — opencode auto-loads named function exports. Fix: `checkLiveness` private; only plugin exports ship.
+- **P2 docs overclaim "throws"/"proves containment"** (conf 0.99) — a forgeable marker proves CONSISTENCY, not containment. Fix: spec.md/plan.md/prd.json now say "warns", "consistent with a wrapper launch", "raw continues with warning"; the "exits nonzero" claims about the LIVENESS GUARD were removed (launcher "exits nonzero" claims are CORRECT — the launcher IS fail-closed; kept).
+
+### Test-bug iterations (closed)
+
+- Check-4 tsc failure on `result.message` (discriminated-union narrowing under `strict:false`) → fixed with `result.ok === false` (literal equality narrows; `!result.ok` did not).
+- Module-level `toasted` persisted across tests via cached `import` → fixed by resetting `toasted=false` at factory start (one process = one factory call = one toast budget; also makes unit tests independent).
+
+Risks:
+  - The liveness marker `OPENCODE_SANDBOX_ROOT` is **forgeable** (`OPENCODE_SANDBOX_ROOT=$PWD opencode` fakes it). The plugin detects CONSISTENCY, not containment. This is documented and is why the plugin is a detector, not a security boundary.
+  - The toast is **best-effort** (headless/`opencode run`/no-TUI-ready → toast fails, caught). stderr is the reliable channel; toast is the TUI-visible channel. No PTY TUI reproduction was run (review noted this; the mock-client test proves the toast fires, not that it remains visible on screen — acceptable for V1).
+  - opencode swallowing factory throws means the plugin CANNOT enforce fail-closed from inside the process; the launcher's preflight + bwrap's inherent fail-closed are the guarantee.
+
 ## Open work
 
-- **Plan 01 Task 3** — Liveness-guard TDD: `repo-boundary.test.ts` RED → `repo-boundary.ts` GREEN (startup plugin proves marker + canonical root; NOT a security boundary).
 - **Plan 02 Task 1 (remainder)** — wire the launcher + real-bwrap integration into `verify.sh` (missing bwrap = hard FAIL).
 - **Plan 02 Task 2** — package without exporting state (`.gitignore` + `sync-template.sh` exclusion + manifest) + sandbox-local opencode/auth/git-identity activation design.
 - **Plan 02 Task 3** — manual activation + evidence closeout (USER checkpoint: install wrapper outside workspace, restart, `opencode-sandbox-test.sh --active`, then record + remove `.active`).

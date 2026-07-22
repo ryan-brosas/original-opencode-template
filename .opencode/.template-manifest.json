@@ -1,6 +1,6 @@
 {
   "version": "0.24.0",
-  "createdAt": "2026-07-22T08:54:38.000Z",
+  "createdAt": "2026-07-22T09:24:10.000Z",
   "files": {
     ".env.example": "eed235067006ee00d43985ceb0fa54e9f1e788e7a300ff4cd537e9bd22e3d2bf",
     ".gitignore": "219b87635f468085ddc1e60d03293c4e2330c27be49cf00489a51a104ef56d0a",
@@ -54,6 +54,7 @@
     "plugin/diagnostics/run.ts": "cbfbade3d8c1283d19c0553e889e6b623d2e0bf9a3b843b9fff3e2b54d964f38",
     "plugin/diagnostics/types.ts": "27602ef146801119ecf857b306a9753f22eb0fce44c1a82b251dd10a48e94d0b",
     "plugin/guard.ts": "8431d00af0e582fc8846525b04d785b59b1c292d5d91619f58a8f076feca1084",
+    "plugin/repo-boundary.ts": "ff56b6b4e5ce3acc629966d789a7e17b254361a879d732af6edf11418a2e5d08",
     "plugin/skill-mcp.ts": "f65303133aa10d177c9e5964e5a7a3290c1656e00b31c7897358b87611fc82a2",
     "plugin/skill-mcp/client.ts": "6d1fa1dbd70e952b919f499c4c1da6cea03704e7f62429593ab4afbd46669165",
     "plugin/skill-mcp/types.ts": "07671bc263b04f92e65195ce68bc400f091f954754a7c414a0b9b6b0ab544c67",
@@ -595,6 +596,7 @@
     "tool/opencode-sandbox.conf.example": "5f9b8d29c7a5afcf35f0d5ec310e015157a8b4793368830665a0cc45d73e8a49",
     "tool/opencode-sandbox.sh": "f498768465894a77c67e3251d18763814ca7ff824b441e076f0ce7b1fb3ec0f7",
     "tool/repo-boundary-invariant-test.sh": "c1deeeb803a7a6f65b89245eb20a1946a2fafe10bd7c3d35f080b10fc694ea27",
+    "tool/repo-boundary/repo-boundary.test.ts": "05d4d175f09ff85f46af427c6dd49f8b8f03a458c8965c7b423216507da74b91",
     "tool/skill-mine-integration-test.sh": "fa21eea5b518ecdfbfe49027042da97261a4880eacb8cf09b0da9358bada58c9",
     "tool/skill-mine/budget.test.ts": "924c7f79ecdc4728e3fb03119308fc2c83ac6c6e90aef5c0c458d78f96f32809",
     "tool/skill-mine/budget.ts": "f42a09f4802fa4517c85f25a2d86fe570f2025305bd20568f34946ce333d7ab7",

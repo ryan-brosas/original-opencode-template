@@ -68,10 +68,10 @@ files:
 
 RED: `repo-boundary.test.ts` fails (plugin absent). GREEN: `repo-boundary.ts` passes.
 
-- `.opencode/plugin/repo-boundary.ts` (≤300 lines, SDK-only import): validates the activation marker is present + canonical `directory === expected root` + the normal-checkout worktree doesn't widen + the canary is absolute + absent. Throws on missing/malformed marker or root mismatch; initializes when both match.
-- `.opencode/tool/repo-boundary/repo-boundary.test.ts` (below plugin auto-discovery depth; `bun test`): the test dynamically checks the plugin before import so RED is behavior, not compile.
-- Fresh-process test: raw startup exits nonzero; wrapped startup loads.
-- If OpenCode swallows plugin factory throws → STOP, do NOT claim fail-closed from the plugin (narrow the guard to a warning or drop it).
+- `.opencode/plugin/repo-boundary.ts` (≤300 lines, SDK-only import): validates the activation marker is present + canonical `directory === expected root` + the normal-checkout worktree doesn't widen. Warns (stderr + best-effort `client.tui.showToast` from a `chat.message` hook) on missing/malformed marker, root mismatch, widened worktree, or unresolvable path; stays silent when the marker matches. `checkLiveness` is private (not exported — opencode auto-discovers named function exports as plugin factories).
+- `.opencode/tool/repo-boundary/repo-boundary.test.ts` (below plugin auto-discovery depth; `bun test`): behavior-based with a mock client (no `checkLiveness` import — it's private); non-literal dynamic import so RED is a runtime rejection, not a compile failure.
+- Fresh-process test: raw startup continues with a warning (swallow verified); wrapped startup initializes silently.
+- If OpenCode swallows plugin factory throws → STOP, do NOT claim fail-closed from the plugin (narrow the guard to a warning or drop it). [RESOLVED: opencode swallows factory throws (verified empirically); guard is WARNING-only, not fail-closed.]
 
 ```yaml
 depends_on: ["Task 2"]
@@ -81,7 +81,7 @@ files:
   - .opencode/tool/repo-boundary/repo-boundary.test.ts
 ```
 
-**Verify:** `bun test .opencode/tool/repo-boundary/repo-boundary.test.ts` (exit 0).
+**Verify:** `bun test ./.opencode/tool/repo-boundary/repo-boundary.test.ts` (exit 0).
 
 ## Plan 02 — Lock invariant + export without state + manual activation closeout
 
